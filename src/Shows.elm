@@ -1,24 +1,19 @@
 port module Shows exposing (Model, Msg(AddToList), model, view, update, subscriptions)
 
-import Html exposing (Html, button, div, text, input, label, span, img, hr)
-import Html.Attributes exposing (type', class, placeholder, style, src)
-import Html.Events exposing (onClick, onInput)
+import Html exposing (Html, div, hr, text)
+import Html.Attributes exposing (style, class)
 import TVShowResult exposing (..)
 import TVShowEpisode exposing (TVShowEpisode)
-import Debug
 import Http
-import Task exposing (andThen)
-import Api
-import Dict
+import Html.App as App
+import Show exposing (Msg(UpdateShow, ShowError))
 
 
 -- Model
 
-type alias TVShowModel =
-  { id : Int, lastEpisodeWatched : Int, name : String, image : Maybe String, episodes : List TVShowEpisode }
 
 type alias Model =
-    { list : List TVShowModel, error : Maybe String }
+    { list : List Show.Model, error : Maybe String }
 
 
 type alias ShowAndEpisodes =
@@ -33,13 +28,7 @@ model =
 -- Update
 
 
-port saveShow : TVShowModel -> Cmd msg
-
-
-port updateWatchedEpisode : TVShowModel -> Cmd msg
-
-
-port loadShows : (List TVShowModel -> msg) -> Sub msg
+port loadShows : (List Show.Model -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
@@ -49,35 +38,56 @@ subscriptions model =
 
 type Msg
     = AddToList TVShowResult
-    | LoadShows (List TVShowModel)
-    | ShowError Http.Error
-    | UpdateEpisodes (List ShowAndEpisodes)
-    | UpdateShowEpisodes ShowAndEpisodes
-    | MarkEpisodesWatched TVShowModel
+    | LoadShows (List Show.Model)
+    | ShowMsg Int Show.Msg
 
 
-fetchShow show =
-    (Api.getEpisodes show.id) `andThen` (\episodes -> Task.succeed ( show.id, episodes ))
+updateHelp : Int -> Show.Msg -> Show.Model -> ( Show.Model, Cmd Msg )
+updateHelp id msg show =
+    if show.id /= id then
+        ( show, Cmd.none )
+    else
+        let
+            ( newShow, cmds ) =
+                Show.update msg show
+        in
+            ( newShow
+            , Cmd.map (ShowMsg id) cmds
+            )
 
 
-addEpisodesToShows shows episodesForShows =
+updateAll show =
     let
-        showEpisodes =
-            Dict.fromList episodesForShows
+        ( newShow, cmds ) =
+            Show.update UpdateShow show
     in
-        List.map (\show -> { show | episodes = Maybe.withDefault [] (Dict.get show.id showEpisodes) }) shows
-
-getLatestEpisode show =
-    case (List.reverse show.episodes) of
-        [] ->
-            0
-        last :: rest ->
-            last.id
+        ( newShow
+        , Cmd.map (ShowMsg show.id) cmds
+        )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ShowMsg id subMsg ->
+            case subMsg of
+                ShowError error ->
+                    case error of
+                        Http.UnexpectedPayload err ->
+                            ( { model | error = Just err }, Cmd.none )
+
+                        _ ->
+                            ( { model | error = Just "Something terrible has happened" }, Cmd.none )
+
+                _ ->
+                    let
+                        ( newShows, cmds ) =
+                            List.unzip (List.map (updateHelp id subMsg) model.list)
+                    in
+                        ( { model | list = newShows }
+                        , Cmd.batch cmds
+                        )
+
         AddToList result ->
             let
                 getImage show =
@@ -88,114 +98,30 @@ update msg model =
                         Just image ->
                             Just image.medium
 
-                newShow =
-                    { id = result.show.id, name = result.show.name, image = (getImage result.show), lastEpisodeWatched = 0, episodes = [] }
+                defaultShow =
+                    Show.model
+
+                ( newShow, cmds ) =
+                    Show.update UpdateShow { defaultShow | id = result.show.id, name = result.show.name, image = (getImage result.show) }
 
                 newList =
                     newShow :: model.list
             in
-                ( { model | list = newList }, Cmd.batch [ saveShow newShow, Task.perform ShowError UpdateShowEpisodes (fetchShow newShow) ] )
+                ( { model | list = newList }, Cmd.map (ShowMsg newShow.id) cmds )
 
         LoadShows shows ->
-            ( { model | list = shows }, Task.perform ShowError UpdateEpisodes (Task.sequence (List.map fetchShow shows)) )
-
-        ShowError error ->
-            case error of
-                Http.UnexpectedPayload err ->
-                    ( { model | error = Just err }, Cmd.none )
-
-                _ ->
-                    ( { model | error = Just "Something terrible has happened" }, Cmd.none )
-
-        UpdateEpisodes episodesForShows ->
             let
-                episodeList =
-                    addEpisodesToShows model.list episodesForShows
+                ( updatedShows, cmds ) =
+                    List.unzip (List.map (updateAll) shows)
             in
-                ( { model | list = episodeList }, Cmd.none )
+                ( { model | list = updatedShows }, Cmd.batch cmds )
 
-        UpdateShowEpisodes ( id, episodes ) ->
-            let
-                newlist =
-                    List.map
-                        (\show ->
-                            (if show.id == id then
-                                { show | episodes = episodes }
-                             else
-                                show
-                            )
-                        )
-                        model.list
-            in
-                ( { model | list = newlist }, Cmd.none )
-
-        MarkEpisodesWatched showToUpdate ->
-            let
-                updatedShow =
-                    { showToUpdate | lastEpisodeWatched = getLatestEpisode showToUpdate }
-
-                newlist =
-                    List.map
-                        (\show ->
-                            (if show.id == showToUpdate.id then
-                                updatedShow
-                             else
-                                show
-                            )
-                        )
-                        model.list
-            in
-                ( { model | list = newlist }, updateWatchedEpisode updatedShow )
 
 
 -- View
 
 
-viewShow show =
-    let
-        unwatchedEpisodes =
-            case show.lastEpisodeWatched of
-                0 ->
-                    List.length show.episodes
-
-                _ ->
-                    List.length (List.filter (\episode -> episode.id > show.lastEpisodeWatched) show.episodes)
-
-        unwatchedEpisodesDesc =
-            case unwatchedEpisodes of
-                0 ->
-                    "All caught up"
-                1 ->
-                    (toString unwatchedEpisodes) ++ " episode to watch"
-                _ ->
-                    (toString unwatchedEpisodes) ++ " episodes to watch"
-    in
-        div []
-            [ div [ style [ ( "display", "flex" ), ( "overflow", "auto" ), ( "min-height", "100px" ), ( "margin-bottom", "15px" ) ] ]
-                [ img [ style [ ( "height", "100px" ) ], src (Maybe.withDefault "http://lorempixel.com/72/100/abstract" show.image) ]
-                    []
-                , div [ style [ ( "padding-left", "15px" ), ( "flex", "1" ) ] ]
-                    [ div [ class "mui--text-title" ]
-                        [ text show.name ]
-                    , div [ class "mui--text-subhead" ]
-                        [ text
-                            (if (List.length show.episodes > 0) then
-                                unwatchedEpisodesDesc
-                             else
-                                ""
-                            )
-                        ]
-                    , (if unwatchedEpisodes /= 0 then
-                        button [ class "mui-btn mui-btn--primary", onClick (MarkEpisodesWatched show) ]
-                            [ text "I'm caught up" ]
-                        else
-                            div [] []
-                        )
-                    ]
-                ]
-            ]
-
-
+view : Model -> Html Msg
 view model =
     case model.list of
         [] ->
@@ -209,6 +135,6 @@ view model =
 
                 Nothing ->
                     div [ class "mui-panel", style [ ( "margin-top", "15px" ), ( "margin-bottom", "15px" ) ] ]
-                        ((List.map viewShow xs)
+                        ((List.map (\show -> App.map (ShowMsg show.id) (Show.view show)) xs)
                             |> (List.intersperse (hr [] []))
                         )

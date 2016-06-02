@@ -32,7 +32,7 @@
       localStorage.setItem('shows', JSON.stringify(showArray));
     });
 
-    app.ports.updateWatchedEpisode.subscribe(function(show) {
+    app.ports.updateShow.subscribe(function(show) {
       var shows = JSON.parse(localStorage.shows);
       shows.forEach(function(oldShow) {
           if (oldShow.id === show.id) {
