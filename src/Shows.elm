@@ -28,7 +28,7 @@ model =
 -- Update
 
 
-port loadShows : (List Show.Model -> msg) -> Sub msg
+port loadShows : (List Show.Show -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
@@ -38,13 +38,13 @@ subscriptions model =
 
 type Msg
     = AddToList TVShowResult
-    | LoadShows (List Show.Model)
+    | LoadShows (List Show.Show)
     | ShowMsg Int Show.Msg
 
 
 updateHelp : Int -> Show.Msg -> Show.Model -> ( Show.Model, Cmd Msg )
 updateHelp id msg show =
-    if show.id /= id then
+    if show.show.id /= id then
         ( show, Cmd.none )
     else
         let
@@ -58,11 +58,13 @@ updateHelp id msg show =
 
 updateAll show =
     let
-        ( newShow, cmds ) =
-            Show.update UpdateShow show
+        (defaultShowModel, initCmd) =
+            Show.model
+        ( newShow, cmd ) =
+            Show.update UpdateShow { defaultShowModel | show = show }
     in
         ( newShow
-        , Cmd.map (ShowMsg show.id) cmds
+        , Cmd.batch [ Cmd.map (ShowMsg show.id) initCmd, Cmd.map (ShowMsg show.id) cmd ] 
         )
 
 
@@ -98,16 +100,22 @@ update msg model =
                         Just image ->
                             Just image.medium
 
-                defaultShow =
+                (defaultShowModel, initialCmd) =
                     Show.model
 
+                defaultShow =
+                    defaultShowModel.show
+
+                updatedShow =
+                    { defaultShow| id = result.show.id, name = result.show.name, image = (getImage result.show) }
+
                 ( newShow, cmds ) =
-                    Show.update UpdateShow { defaultShow | id = result.show.id, name = result.show.name, image = (getImage result.show) }
+                    Show.update UpdateShow { defaultShowModel | show = updatedShow }
 
                 newList =
                     newShow :: model.list
             in
-                ( { model | list = newList }, Cmd.map (ShowMsg newShow.id) cmds )
+                ( { model | list = newList }, Cmd.batch [ Cmd.map (ShowMsg newShow.show.id) initialCmd, Cmd.map (ShowMsg newShow.show.id) cmds ] )
 
         LoadShows shows ->
             let
@@ -135,6 +143,6 @@ view model =
 
                 Nothing ->
                     div [ class "mui-panel", style [ ( "margin-top", "15px" ), ( "margin-bottom", "15px" ) ] ]
-                        ((List.map (\show -> App.map (ShowMsg show.id) (Show.view show)) xs)
+                        ((List.map (\show -> App.map (ShowMsg show.show.id) (Show.view show)) xs)
                             |> (List.intersperse (hr [] []))
                         )

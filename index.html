@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>elm-tv</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css" />
   <link href="//cdn.muicss.com/mui-0.6.0/css/mui.min.css" rel="stylesheet" type="text/css" />
   <style>
@@ -14,40 +15,63 @@
 </head>
 <body>
   <script src="//cdn.muicss.com/mui-0.6.0/js/mui.min.js"></script>
+  <script src="https://npmcdn.com/localforage@1.4.2/dist/localforage.min.js"></script>
   <script src="elm.js"></script>
   <script>
+    localforage.config({
+        name        : 'elm-tv',
+        version     : 1.0,
+        storeName   : 'elm_tv',
+        description : 'Store TV show information'
+    });
+
     var app = Elm.Main.fullscreen();
     window.app = app;
 
-    app.ports.saveShow.subscribe(function(show) {
-      var shows = localStorage.shows;
-      var showArray;
-      if (shows) {
-        showArray = JSON.parse(shows);
-      } else {
-        showArray = [];
-      }
+    app.ports.saveShowLocal.subscribe(function(show) {
+      localforage.getItem('shows')
+        .then(function getShows(shows) {
+            var localShows = shows;
+            if (shows === null) {
+                localShows = [];
+            }
 
-      showArray.push(show);
-      localStorage.setItem('shows', JSON.stringify(showArray));
+            localShows.push(show);
+            return localforage.setItem('shows', localShows);
+        })
+        .catch(function(err) {
+            console.log(err);
+        });
     });
 
-    app.ports.updateShow.subscribe(function(show) {
-      var shows = JSON.parse(localStorage.shows);
-      shows.forEach(function(oldShow) {
-          if (oldShow.id === show.id) {
-              oldShow.lastEpisodeWatched = show.lastEpisodeWatched;
-          }
-      })
+    app.ports.updateShowLocal.subscribe(function(show) {
+        localforage.getItem('shows')
+          .then(function getShows(shows) {
+              shows.forEach(function(oldShow) {
+                  if (oldShow.id === show.id) {
+                      oldShow.lastEpisodeWatched = show.lastEpisodeWatched;
+                  }
+              })
 
-      localStorage.setItem('shows', JSON.stringify(shows));
+              return localforage.setItem('shows', shows);
+          })
+          .catch(function(err) {
+              console.log(err);
+          });
     });
 
-    if (localStorage.shows) {
-      setTimeout(function() {
-        app.ports.loadShows.send(JSON.parse(localStorage.shows));
-      }, 0);
-    }
+    setTimeout(function() {
+        localforage.getItem('shows')
+          .then(function getShows(shows) {
+              if (shows) {
+                  console.log(shows);
+                  app.ports.loadShows.send(shows);
+              }
+          })
+          .catch(function(err) {
+              console.log(err);
+          });
+    }, 0);
   </script>
 </body>
 </html>

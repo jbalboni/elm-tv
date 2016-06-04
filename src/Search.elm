@@ -23,7 +23,6 @@ model =
     { term = "", visible = False, results = [], error = Nothing }
 
 
-
 -- UPDATE
 
 
@@ -93,7 +92,13 @@ viewTVShowResult result =
                 [ div [ class "mui--text-title" ]
                     [ text result.show.name ]
                 , div [ class "mui--text-subhead" ]
-                    [ text result.show.network.name ]
+                    [ text (
+                        case result.show.network of
+                            Nothing ->
+                                ""
+                            Just network ->
+                                network.name
+                    ) ]
                 , div []
                     [ Markdown.toHtml [] result.show.summary ]
                 , div []
