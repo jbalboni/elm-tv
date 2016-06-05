@@ -3,11 +3,10 @@ module Search exposing (model, Model, view, update, Msg(..))
 import Html exposing (Html, button, div, text, input, label, span, img, hr)
 import Html.Attributes exposing (type', class, placeholder, style, src)
 import Html.Events exposing (onClick, onInput)
-import TVShowResult exposing (..)
+import Api.Types exposing (TVShowResult)
 import Api
 import Task
 import Http
-import TVShowResult exposing (TVShowResult)
 import Markdown
 
 
@@ -104,11 +103,11 @@ viewTVShowResult result =
                     ]
                 , div []
                     [ Markdown.toHtml [] result.show.summary ]
-                , div []
-                    [ button [ onClick (AddShow result), class "mui-btn mui-btn--primary" ]
-                        [ text "Add" ]
-                    ]
                 ]
+            ]
+        , div []
+            [ button [ onClick (AddShow result), class "mui-btn mui-btn--primary" ]
+                [ text "Add" ]
             ]
         ]
 

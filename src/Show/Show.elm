@@ -10,13 +10,21 @@ import Task
 import Api
 import List.Extra exposing (groupWhile)
 import Markdown
-import TVShowEpisode exposing (TVShowEpisode)
+import Api.Types exposing (TVShowEpisode)
 import Date exposing (Date)
 import Date.Extra.Compare as Compare exposing (is, Compare2(..))
 import Debug
 import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
+import Html.CssHelpers
+import Show.Styles exposing (CssClasses(..), componentNamespace)
 
+
+namespace =
+    Html.CssHelpers.withNamespace componentNamespace
+
+localClass =
+    namespace.class
 
 -- MODEL
 
@@ -268,20 +276,24 @@ viewSeasons lastEpisodeWatched seasons =
                                 [ div [ class "mui--text-title", style [ ( "line-height", "43px" ), ( "width", "50%" ) ] ]
                                     [ text ("Season " ++ (toString season.number)) ]
                                 , div []
-                                    [ (if (hasSeasonBeenWatched lastEpisodeWatched season) == True then
-                                        div [] []
-                                       else
-                                        (button [ onClick (MarkSeasonWatched season.number), class "mui-btn mui-btn--primary mui-btn--small" ]
-                                            [ text "I watched this" ]
-                                        )
-                                      )
-                                    , button [ onClick (ToggleSeason season.number (not season.visible)), class "mui-btn mui-btn--accent mui-btn--small" ]
-                                        [ text
-                                            (if season.visible then
-                                                "Hide episodes"
-                                             else
-                                                "Show episodes"
+                                    [ div []
+                                        [ (if (hasSeasonBeenWatched lastEpisodeWatched season) == True then
+                                            div [] []
+                                           else
+                                            (button [ onClick (MarkSeasonWatched season.number), class "mui-btn mui-btn--primary mui-btn--small" ]
+                                                [ text "I watched this" ]
                                             )
+                                          )
+                                        ]
+                                    , div [ style [("text-align", "right")]]
+                                        [ button [ onClick (ToggleSeason season.number (not season.visible)), class "mui-btn mui-btn--accent mui-btn--small" ]
+                                            [ text
+                                                (if season.visible then
+                                                    "Hide episodes"
+                                                 else
+                                                    "Show episodes"
+                                                )
+                                            ]
                                         ]
                                     ]
                                 ]
@@ -341,7 +353,7 @@ viewShow today show =
     in
         div []
             [ div [ style [ ( "display", "flex" ), ( "overflow", "auto" ), ( "min-height", "100px" ), ( "margin-bottom", "15px" ) ] ]
-                [ img [ style [ ( "height", "200px" ) ], src (Maybe.withDefault "http://lorempixel.com/72/100/abstract" show.image) ]
+                [ img [ localClass [ ShowImage ], src (Maybe.withDefault "http://lorempixel.com/72/100/abstract" show.image) ]
                     []
                 , div [ style [ ( "padding-left", "15px" ), ( "flex", "1" ) ] ]
                     [ div [ class "mui--text-title" ]
@@ -354,27 +366,27 @@ viewShow today show =
                                 ""
                             )
                         ]
-                    , button [ onClick (ToggleSeasons (not show.seasonsVisible)), class "mui-btn mui-btn--accent mui-btn--small" ]
-                        [ text
-                            (if show.seasonsVisible then
-                                "Hide seasons"
-                             else
-                                "Show seasons"
-                            )
-                        ]
-                    , (if unwatchedEpisodes /= 0 then
-                        button [ class "mui-btn mui-btn--primary mui-btn--small", onClick MarkAllEpisodesWatched ]
-                            [ text "I'm caught up" ]
-                       else
-                        div [] []
-                      )
-                    , (if show.seasonsVisible == True then
-                        viewSeasons show.lastEpisodeWatched seasons
-                       else
-                        div [] []
-                      )
                     ]
                 ]
+            , button [ onClick (ToggleSeasons (not show.seasonsVisible)), class "mui-btn mui-btn--accent mui-btn--small" ]
+                [ text
+                    (if show.seasonsVisible then
+                        "Hide seasons"
+                     else
+                        "Show seasons"
+                    )
+                ]
+            , (if unwatchedEpisodes /= 0 then
+                button [ class "mui-btn mui-btn--primary mui-btn--small", onClick MarkAllEpisodesWatched ]
+                    [ text "I'm caught up" ]
+               else
+                div [] []
+              )
+            , (if show.seasonsVisible == True then
+                viewSeasons show.lastEpisodeWatched seasons
+               else
+                div [] []
+              )
             ]
 
 

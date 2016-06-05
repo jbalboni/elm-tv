@@ -3,8 +3,7 @@ module Api exposing (..)
 import Http
 import Json.Decode as Json
 import Task
-import TVShowResult exposing (TVShowResult, decodeTVShowResult)
-import TVShowEpisode exposing (decodeTVShowEpisode)
+import Api.Types exposing (decodeTVShowResult, decodeTVShowEpisode)
 
 
 baseUrl =

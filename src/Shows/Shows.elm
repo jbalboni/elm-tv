@@ -2,8 +2,7 @@ port module Shows exposing (Model, Msg(AddToList), model, view, update, subscrip
 
 import Html exposing (Html, div, hr, text)
 import Html.Attributes exposing (style, class)
-import TVShowResult exposing (..)
-import TVShowEpisode exposing (TVShowEpisode)
+import Api.Types exposing (TVShowResult, TVShowEpisode)
 import Http
 import Html.App as App
 import Show exposing (Msg(UpdateShow, ShowError))
