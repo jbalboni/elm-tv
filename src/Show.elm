@@ -12,7 +12,7 @@ import List.Extra exposing (groupWhile)
 import Markdown
 import TVShowEpisode exposing (TVShowEpisode)
 import Date exposing (Date)
-import Date.Extra.Compare as Compare exposing (is, Compare2 (..))
+import Date.Extra.Compare as Compare exposing (is, Compare2(..))
 import Debug
 import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
@@ -28,22 +28,28 @@ type alias Episode =
 type alias Season =
     { number : Int, episodes : List Episode, visible : Bool }
 
+
 type alias Show =
     { id : Int, lastEpisodeWatched : Int, name : String, image : Maybe String, seasons : List Season, seasonsVisible : Bool }
+
 
 type alias Model =
     { today : Date, show : Show }
 
+
 model =
-    ({ today = Date.fromTime 0
-    , show =
-        { id = 0
-        , name = ""
-        , lastEpisodeWatched = 0
-        , image = Nothing
-        , seasons = []
-        , seasonsVisible = False }
-    }, Task.perform ShowTimeError SetTodaysDate Date.now)
+    ( { today = Date.fromTime 0
+      , show =
+            { id = 0
+            , name = ""
+            , lastEpisodeWatched = 0
+            , image = Nothing
+            , seasons = []
+            , seasonsVisible = False
+            }
+      }
+    , Task.perform ShowTimeError SetTodaysDate Date.now
+    )
 
 
 
@@ -89,18 +95,19 @@ getSeason episodes =
         first :: _ ->
             first.season
 
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SetTodaysDate date ->
-            ( { model | today = date}, Cmd.none )
+            ( { model | today = date }, Cmd.none )
 
         _ ->
             let
-                (show, cmd) =
+                ( show, cmd ) =
                     updateShow msg model.show
             in
-                ({ model | show = show}, cmd)
+                ( { model | show = show }, cmd )
 
 
 updateShow : Msg -> Show -> ( Show, Cmd Msg )
@@ -109,9 +116,9 @@ updateShow msg model =
         MarkEpisodeWatched id ->
             let
                 updatedShow =
-                    {model | lastEpisodeWatched = id}
+                    { model | lastEpisodeWatched = id }
             in
-                (updatedShow, updateShowLocal updatedShow)
+                ( updatedShow, updateShowLocal updatedShow )
 
         MarkSeasonWatched number ->
             let
@@ -120,17 +127,19 @@ updateShow msg model =
             in
                 case chosenSeason of
                     Nothing ->
-                        (model, Cmd.none)
+                        ( model, Cmd.none )
+
                     Just season ->
                         case season.episodes of
                             [] ->
-                                (model, Cmd.none)
+                                ( model, Cmd.none )
+
                             latest :: _ ->
                                 let
                                     updatedShow =
-                                        {model | lastEpisodeWatched = latest.id}
+                                        { model | lastEpisodeWatched = latest.id }
                                 in
-                                    (updatedShow, updateShowLocal updatedShow)
+                                    ( updatedShow, updateShowLocal updatedShow )
 
         MarkAllEpisodesWatched ->
             let
@@ -211,12 +220,15 @@ updateShow msg model =
             ( model, Cmd.none )
 
 
+
 -- VIEW
+
 
 hasSeasonBeenWatched lastWatchedEpisode season =
     case season.episodes of
         [] ->
             False
+
         latest :: _ ->
             lastWatchedEpisode >= latest.id
 
@@ -225,15 +237,14 @@ viewEpisode lastEpisodeWatched episode =
     div []
         [ div [ class "mui--text-subhead" ]
             [ text ("Episode " ++ (toString episode.number) ++ " - " ++ episode.name) ]
-        , div [ ]
+        , div []
             [ (Markdown.toHtml [] episode.summary) ]
-        , (
-            if episode.id > lastEpisodeWatched then
-                button [ onClick (MarkEpisodeWatched episode.id), class "mui-btn mui-btn--primary mui-btn--small" ]
-                    [ text "I watched this" ]
-            else
-                div [] []
-            )
+        , (if episode.id > lastEpisodeWatched then
+            button [ onClick (MarkEpisodeWatched episode.id), class "mui-btn mui-btn--primary mui-btn--small" ]
+                [ text "I watched this" ]
+           else
+            div [] []
+          )
         ]
 
 
@@ -241,7 +252,7 @@ viewEpisodes lastEpisodeWatched season =
     case season.visible of
         True ->
             div []
-                ((List.intersperse (hr [] []) (List.map (viewEpisode lastEpisodeWatched) season.episodes)) ++ [(hr [] [])])
+                ((List.intersperse (hr [] []) (List.map (viewEpisode lastEpisodeWatched) season.episodes)) ++ [ (hr [] []) ])
 
         False ->
             div [] []
@@ -249,31 +260,39 @@ viewEpisodes lastEpisodeWatched season =
 
 viewSeasons lastEpisodeWatched seasons =
     div []
-        ((hr [] []) ::
-        (List.map
-            (\season ->
-                div []
-                    [ div [ style [("display", "flex"), ("justify-content", "space-between"), ("flex-wrap", "wrap")]]
-                        [ div [ class "mui--text-title", style [("line-height", "43px"), ("width", "50%")] ]
-                            [ text ("Season " ++ (toString season.number)) ]
-                        , div []
-                            [ (
-                                if (hasSeasonBeenWatched lastEpisodeWatched season) == True then
-                                    div [] []
-                                else
-                                    (button [ onClick (MarkSeasonWatched season.number), class "mui-btn mui-btn--primary mui-btn--small" ]
-                                        [ text "I watched this" ])
-                            )
-                            , button [ onClick (ToggleSeason season.number (not season.visible)), class "mui-btn mui-btn--accent mui-btn--small" ]
-                                [ text (if season.visible then "Hide episodes" else "Show episodes") ]
+        ((hr [] [])
+            :: (List.map
+                    (\season ->
+                        div []
+                            [ div [ style [ ( "display", "flex" ), ( "justify-content", "space-between" ), ( "flex-wrap", "wrap" ) ] ]
+                                [ div [ class "mui--text-title", style [ ( "line-height", "43px" ), ( "width", "50%" ) ] ]
+                                    [ text ("Season " ++ (toString season.number)) ]
+                                , div []
+                                    [ (if (hasSeasonBeenWatched lastEpisodeWatched season) == True then
+                                        div [] []
+                                       else
+                                        (button [ onClick (MarkSeasonWatched season.number), class "mui-btn mui-btn--primary mui-btn--small" ]
+                                            [ text "I watched this" ]
+                                        )
+                                      )
+                                    , button [ onClick (ToggleSeason season.number (not season.visible)), class "mui-btn mui-btn--accent mui-btn--small" ]
+                                        [ text
+                                            (if season.visible then
+                                                "Hide episodes"
+                                             else
+                                                "Show episodes"
+                                            )
+                                        ]
+                                    ]
+                                ]
+                            , hr [] []
+                            , viewEpisodes lastEpisodeWatched season
                             ]
-                        ]
-                    , hr [] []
-                    , viewEpisodes lastEpisodeWatched season
-                    ]
-            )
-            seasons
-        ))
+                    )
+                    seasons
+               )
+        )
+
 
 episodeAired today episode =
     case Result.toMaybe (Date.fromString episode.airstamp) of
@@ -286,8 +305,9 @@ episodeAired today episode =
 
 airedSeasons today seasons =
     seasons
-    |> List.map (\season -> { season | episodes = (List.filter (episodeAired today) season.episodes) })
-    |> List.filter (\season -> season.episodes /= [])
+        |> List.map (\season -> { season | episodes = (List.filter (episodeAired today) season.episodes) })
+        |> List.filter (\season -> season.episodes /= [])
+
 
 viewShow today show =
     let
@@ -356,6 +376,7 @@ viewShow today show =
                     ]
                 ]
             ]
+
 
 view model =
     viewShow model.today model.show

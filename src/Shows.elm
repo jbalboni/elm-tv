@@ -58,13 +58,14 @@ updateHelp id msg show =
 
 updateAll show =
     let
-        (defaultShowModel, initCmd) =
+        ( defaultShowModel, initCmd ) =
             Show.model
+
         ( newShow, cmd ) =
             Show.update UpdateShow { defaultShowModel | show = show }
     in
         ( newShow
-        , Cmd.batch [ Cmd.map (ShowMsg show.id) initCmd, Cmd.map (ShowMsg show.id) cmd ] 
+        , Cmd.batch [ Cmd.map (ShowMsg show.id) initCmd, Cmd.map (ShowMsg show.id) cmd ]
         )
 
 
@@ -100,14 +101,14 @@ update msg model =
                         Just image ->
                             Just image.medium
 
-                (defaultShowModel, initialCmd) =
+                ( defaultShowModel, initialCmd ) =
                     Show.model
 
                 defaultShow =
                     defaultShowModel.show
 
                 updatedShow =
-                    { defaultShow| id = result.show.id, name = result.show.name, image = (getImage result.show) }
+                    { defaultShow | id = result.show.id, name = result.show.name, image = (getImage result.show) }
 
                 ( newShow, cmds ) =
                     Show.update UpdateShow { defaultShowModel | show = updatedShow }
