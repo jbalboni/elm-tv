@@ -5,6 +5,7 @@ import Html exposing (Html, div)
 import Search exposing (Msg(AddShow))
 import Shows exposing (Msg(AddToList))
 import AppLayout
+import Set exposing (Set)
 
 
 main =
@@ -82,11 +83,15 @@ update msg model =
 -- VIEW
 
 
+showDict shows =
+    List.foldr (\show showSet -> Set.insert show.show.id showSet) Set.empty shows.list
+
+
 view : Model -> Html Msg
 view model =
     AppLayout.view "Elm TV"
         (div []
-            [ App.map SearchMsg (Search.view model.search)
+            [ App.map SearchMsg (Search.view model.search (showDict model.shows))
             , App.map ShowsMsg (Shows.view model.shows)
             ]
         )

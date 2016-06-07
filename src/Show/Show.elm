@@ -23,8 +23,11 @@ import Show.Styles exposing (CssClasses(..), componentNamespace)
 namespace =
     Html.CssHelpers.withNamespace componentNamespace
 
+
 localClass =
     namespace.class
+
+
 
 -- MODEL
 
@@ -248,8 +251,10 @@ viewEpisode lastEpisodeWatched episode =
         , div []
             [ (Markdown.toHtml [] episode.summary) ]
         , (if episode.id > lastEpisodeWatched then
-            button [ onClick (MarkEpisodeWatched episode.id), class "mui-btn mui-btn--primary mui-btn--small" ]
-                [ text "I watched this" ]
+            div [ style [ ( "display", "flex" ), ( "justify-content", "flex-end" ) ] ]
+                [ button [ onClick (MarkEpisodeWatched episode.id), class "mui-btn mui-btn--primary mui-btn--small c-show-Button" ]
+                    [ text "I watched this" ]
+                ]
            else
             div [] []
           )
@@ -280,13 +285,13 @@ viewSeasons lastEpisodeWatched seasons =
                                         [ (if (hasSeasonBeenWatched lastEpisodeWatched season) == True then
                                             div [] []
                                            else
-                                            (button [ onClick (MarkSeasonWatched season.number), class "mui-btn mui-btn--primary mui-btn--small" ]
+                                            (button [ onClick (MarkSeasonWatched season.number), class "mui-btn mui-btn--primary mui-btn--small c-show-Button" ]
                                                 [ text "I watched this" ]
                                             )
                                           )
                                         ]
-                                    , div [ style [("text-align", "right")]]
-                                        [ button [ onClick (ToggleSeason season.number (not season.visible)), class "mui-btn mui-btn--accent mui-btn--small" ]
+                                    , div [ style [ ( "text-align", "right" ) ] ]
+                                        [ button [ onClick (ToggleSeason season.number (not season.visible)), class "mui-btn mui-btn--accent mui-btn--small c-show-Button" ]
                                             [ text
                                                 (if season.visible then
                                                     "Hide episodes"
@@ -368,7 +373,7 @@ viewShow today show =
                         ]
                     ]
                 ]
-            , button [ onClick (ToggleSeasons (not show.seasonsVisible)), class "mui-btn mui-btn--accent mui-btn--small" ]
+            , button [ onClick (ToggleSeasons (not show.seasonsVisible)), class "mui-btn mui-btn--accent mui-btn--small c-show-Button" ]
                 [ text
                     (if show.seasonsVisible then
                         "Hide seasons"
@@ -377,7 +382,7 @@ viewShow today show =
                     )
                 ]
             , (if unwatchedEpisodes /= 0 then
-                button [ class "mui-btn mui-btn--primary mui-btn--small", onClick MarkAllEpisodesWatched ]
+                button [ class "mui-btn mui-btn--primary mui-btn--small c-show-Button", onClick MarkAllEpisodesWatched ]
                     [ text "I'm caught up" ]
                else
                 div [] []

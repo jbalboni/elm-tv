@@ -1,13 +1,25 @@
 module Search exposing (model, Model, view, update, Msg(..))
 
-import Html exposing (Html, button, div, text, input, label, span, img, hr)
-import Html.Attributes exposing (type', class, placeholder, style, src)
-import Html.Events exposing (onClick, onInput)
+import Set exposing (Set)
+import Html exposing (Html, button, div, text, input, label, span, img, hr, form)
+import Html.Attributes exposing (type', class, placeholder, style, src, disabled)
+import Html.Events exposing (onClick, onInput, onSubmit)
 import Api.Types exposing (TVShowResult)
 import Api
 import Task
 import Http
 import Markdown
+import Html.CssHelpers
+import Search.Styles exposing (CssClasses(..), componentNamespace)
+
+
+namespace =
+    Html.CssHelpers.withNamespace componentNamespace
+
+
+localClass =
+    namespace.class
+
 
 
 -- MODEL
@@ -83,7 +95,7 @@ getImage image =
                 img.medium
 
 
-viewTVShowResult result =
+viewTVShowResult shows result =
     div []
         [ div [ style [ ( "display", "flex" ), ( "overflow", "auto" ), ( "min-height", "100px" ), ( "margin-bottom", "15px" ) ] ]
             [ img [ style [ ( "height", "100px" ) ], src (getImage result.show.image) ]
@@ -106,15 +118,22 @@ viewTVShowResult result =
                 ]
             ]
         , div []
-            [ button [ onClick (AddShow result), class "mui-btn mui-btn--primary" ]
-                [ text "Add" ]
+            [ (case (Set.member result.show.id shows) of
+                False ->
+                    button [ onClick (AddShow result), class "mui-btn mui-btn--primary" ]
+                        [ text "Add" ]
+
+                True ->
+                    button [ class "mui-btn mui-btn--primary", disabled True ]
+                        [ text "Already added" ]
+              )
             ]
         ]
 
 
-viewResults results =
+viewResults results shows =
     div [ class "mui-panel" ]
-        ((List.map viewTVShowResult results)
+        ((List.map (viewTVShowResult shows) results)
             |> (List.intersperse (hr [] []))
         )
 
@@ -124,8 +143,8 @@ viewError error =
         [ text (Maybe.withDefault "" error) ]
 
 
-expandedView model =
-    div []
+expandedView model shows =
+    form [ onSubmit Search ]
         [ div [ style [ ( "padding-top", "15px" ), ( "padding-bottom", "15px" ) ] ]
             [ div [ class "mui-textfield mui-textfield--float-label" ]
                 [ input [ type' "text", onInput UpdateTerm ]
@@ -139,7 +158,7 @@ expandedView model =
                 [ text "Cancel" ]
             ]
         , if (List.length model.results) > 0 then
-            viewResults model.results
+            viewResults model.results shows
           else if model.error /= Nothing then
             viewError model.error
           else
@@ -148,15 +167,15 @@ expandedView model =
 
 
 collapsedView model =
-    div [ style [ ( "padding-top", "15px" ), ( "padding-bottom", "15px" ) ] ]
-        [ button [ onClick ShowSearch, class "mui-btn mui-btn--primary" ]
-            [ text "Show search" ]
+    div [ localClass [ SearchCollapsed ] ]
+        [ button [ onClick ShowSearch, class "mui-btn mui-btn--fab mui-btn--accent", style [ ( "float", "right" ) ] ]
+            [ text "+" ]
         ]
 
 
-view : Model -> Html Msg
-view model =
+view : Model -> Set Int -> Html Msg
+view model shows =
     if model.visible then
-        (expandedView model)
+        (expandedView model shows)
     else
         collapsedView model

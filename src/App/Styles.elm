@@ -1,6 +1,5 @@
 module App.Styles exposing (..)
 
-
 import Css exposing (..)
 import Css.Elements exposing (body, li)
 import Css.Namespace exposing (namespace)
@@ -8,14 +7,19 @@ import Css.Namespace exposing (namespace)
 
 type CssClasses
     = ShowImage
+    | AppContainer
+
 
 appNamespace =
-    "elmtv-"
+    "app-"
+
 
 css =
     (namespace appNamespace)
-    [ body
-        [ fontFamilies [ "Roboto", qt "Helvetica Neue", "Helvetica", "Arial" ]
-        , backgroundColor (hex "f4f4f4")
+        [ body
+            [ fontFamilies [ "Roboto", qt "Helvetica Neue", "Helvetica", "Arial" ]
+            , backgroundColor (hex "f4f4f4")
+            ]
+        , (.) AppContainer
+            [ paddingBottom (px 80) ]
         ]
-    ]

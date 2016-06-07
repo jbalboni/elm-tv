@@ -1,4 +1,4 @@
-module Api.Types exposing(..)
+module Api.Types exposing (..)
 
 import Json.Encode
 import Json.Decode
