@@ -1,4 +1,4 @@
-port module Show exposing (Model, Show, model, view, update, Msg(UpdateShow, ShowError))
+port module Show exposing (Model, Show, model, view, update, Msg(UpdateShow, ShowError, SetRev))
 
 import Html exposing (Html, button, div, text, img, a, hr)
 import Html.Attributes exposing (class, style, src, href)
@@ -41,7 +41,7 @@ type alias Season =
 
 
 type alias Show =
-    { id : Int, lastEpisodeWatched : Int, name : String, image : Maybe String, seasons : List Season, seasonsVisible : Bool }
+    { id : Int, lastEpisodeWatched : Int, name : String, image : Maybe String, seasons : List Season, seasonsVisible : Bool, rev : String }
 
 
 type alias Model =
@@ -57,6 +57,7 @@ model =
             , image = Nothing
             , seasons = []
             , seasonsVisible = False
+            , rev = ""
             }
       }
     , Task.perform ShowTimeError SetTodaysDate Date.now
@@ -67,10 +68,7 @@ model =
 -- UPDATE
 
 
-port saveShowLocal : Show -> Cmd msg
-
-
-port updateShowLocal : Show -> Cmd msg
+port persistShow : Show -> Cmd msg
 
 
 fetchShow show =
@@ -96,6 +94,7 @@ type Msg
     | ShowError Http.Error
     | ShowTimeError String
     | SetTodaysDate Date
+    | SetRev String
 
 
 getSeason episodes =
@@ -129,7 +128,7 @@ updateShow msg model =
                 updatedShow =
                     { model | lastEpisodeWatched = id }
             in
-                ( updatedShow, updateShowLocal updatedShow )
+                ( updatedShow, persistShow updatedShow )
 
         MarkSeasonWatched number ->
             let
@@ -150,7 +149,7 @@ updateShow msg model =
                                     updatedShow =
                                         { model | lastEpisodeWatched = latest.id }
                                 in
-                                    ( updatedShow, updateShowLocal updatedShow )
+                                    ( updatedShow, persistShow updatedShow )
 
         MarkAllEpisodesWatched ->
             let
@@ -170,7 +169,7 @@ updateShow msg model =
                 updatedShow =
                     { model | lastEpisodeWatched = latestEpisode }
             in
-                ( updatedShow, updateShowLocal updatedShow )
+                ( updatedShow, persistShow updatedShow )
 
         UpdateEpisodes episodes ->
             let
@@ -200,7 +199,7 @@ updateShow msg model =
             in
                 ( updatedShow
                 , (if updatedShow /= model then
-                    saveShowLocal updatedShow
+                    persistShow updatedShow
                    else
                     Cmd.none
                   )
@@ -226,6 +225,9 @@ updateShow msg model =
                         model.seasons
             in
                 ( { model | seasons = newSeasons }, Cmd.none )
+
+        SetRev rev ->
+            ( { model | rev = rev }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )

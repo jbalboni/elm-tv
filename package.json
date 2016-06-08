@@ -1,0 +1,37 @@
+{
+  "name": "elm-tv",
+  "version": "1.0.0",
+  "description": "App for tracking what TV shows you're watching have episodes to watch",
+  "main": "elm.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "elm-webpack-loader": "^3.0.3",
+    "localforage": "^1.4.2",
+    "pouchdb": "^5.4.0",
+    "webpack": "^1.13.1"
+  },
+  "devDependencies": {
+    "file-loader": "^0.8.5",
+    "webpack": "^1.13.1",
+    "webpack-dev-server": "^1.14.1"
+  },
+  "scripts": {
+    "build": "webpack && elm-css src/Stylesheets.elm --output dist/",
+    "server": "webpack-dev-server --port=3000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jbalboni/elm-tv.git"
+  },
+  "keywords": [
+    "elm"
+  ],
+  "author": "Jeff Balboni",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jbalboni/elm-tv/issues"
+  },
+  "homepage": "https://github.com/jbalboni/elm-tv#readme"
+}

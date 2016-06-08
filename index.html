@@ -6,67 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css" />
   <link href="//cdn.muicss.com/mui-0.6.0/css/mui.min.css" rel="stylesheet" type="text/css" />
-  <link href="styles.css" rel="stylesheet" type="text/css" />
+  <link href="dist/styles.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
   <script src="//cdn.muicss.com/mui-0.6.0/js/mui.min.js"></script>
-  <script src="https://npmcdn.com/localforage@1.4.2/dist/localforage.min.js"></script>
-  <script src="elm.js"></script>
-  <script>
-    localforage.config({
-        name        : 'elm-tv',
-        version     : 1.0,
-        storeName   : 'elm_tv',
-        description : 'Store TV show information'
-    });
-
-    var app = Elm.Main.fullscreen();
-    window.app = app;
-
-    app.ports.saveShowLocal.subscribe(function(show) {
-      localforage.getItem('shows')
-        .then(function getShows(shows) {
-            var localShows = shows;
-            if (shows === null) {
-                localShows = [];
-            }
-
-            localShows.push(show);
-            return localforage.setItem('shows', localShows);
-        })
-        .catch(function(err) {
-            console.log(err);
-        });
-    });
-
-    app.ports.updateShowLocal.subscribe(function(show) {
-        localforage.getItem('shows')
-          .then(function getShows(shows) {
-              shows.forEach(function(oldShow) {
-                  if (oldShow.id === show.id) {
-                      oldShow.lastEpisodeWatched = show.lastEpisodeWatched;
-                  }
-              })
-
-              return localforage.setItem('shows', shows);
-          })
-          .catch(function(err) {
-              console.log(err);
-          });
-    });
-
-    setTimeout(function() {
-        localforage.getItem('shows')
-          .then(function getShows(shows) {
-              if (shows) {
-                  console.log(shows);
-                  app.ports.loadShows.send(shows);
-              }
-          })
-          .catch(function(err) {
-              console.log(err);
-          });
-    }, 0);
-  </script>
+  <script src="index.js"></script>
 </body>
 </html>

@@ -2,3 +2,5 @@ elm.js
 elm-stuff
 random
 styles.css
+dist/
+node_modules

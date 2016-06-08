@@ -5,7 +5,7 @@ import Html.Attributes exposing (style, class)
 import Api.Types exposing (TVShowResult, TVShowEpisode)
 import Http
 import Html.App as App
-import Show exposing (Msg(UpdateShow, ShowError))
+import Show exposing (Msg(UpdateShow, ShowError, SetRev))
 
 
 -- Model
@@ -19,6 +19,10 @@ type alias ShowAndEpisodes =
     ( Int, List TVShowEpisode )
 
 
+type alias ShowRev =
+    { id : Int, rev : String }
+
+
 model =
     { list = [], error = Nothing }
 
@@ -30,15 +34,22 @@ model =
 port loadShows : (List Show.Show -> msg) -> Sub msg
 
 
+port loadRev : (ShowRev -> msg) -> Sub msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    loadShows LoadShows
+    Sub.batch
+        [ loadShows LoadShows
+        , loadRev LoadRev
+        ]
 
 
 type Msg
     = AddToList TVShowResult
     | LoadShows (List Show.Show)
     | ShowMsg Int Show.Msg
+    | LoadRev ShowRev
 
 
 updateHelp : Int -> Show.Msg -> Show.Model -> ( Show.Model, Cmd Msg )
@@ -123,6 +134,13 @@ update msg model =
                     List.unzip (List.map (updateAll) shows)
             in
                 ( { model | list = updatedShows }, Cmd.batch cmds )
+
+        LoadRev rev ->
+            let
+                ( newShows, cmds ) =
+                    List.unzip (List.map (updateHelp rev.id (SetRev rev.rev)) model.list)
+            in
+                ( { model | list = newShows }, Cmd.batch cmds )
 
 
 
