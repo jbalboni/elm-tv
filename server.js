@@ -46,7 +46,7 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'index.html'));
 });
 
-app.listen(3000, '0.0.0.0', (err) => {
+app.listen(process.env.port || 3000, '0.0.0.0', (err) => {
     if (err) {
         console.log(err);
         return;
