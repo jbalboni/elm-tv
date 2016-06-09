@@ -53,6 +53,9 @@
 	var createStore = __webpack_require__(1);
 	var PouchDB = __webpack_require__(2);
 
+	var remoteCouch = window.location.protocol + '//' + window.location.host + '/db/shows';
+	//var remoteCouch = 'https://fortionturinteredentlyne:5aee0a25287da2371ae7167927eb54d71751342f@jbalboni.cloudant.com/shows';
+
 	Elm = __webpack_require__(38);
 
 	db = new PouchDB('shows');
@@ -71,7 +74,7 @@
 	    });
 	});
 
-	setTimeout(function() {
+	function fetchInitial() {
 	    store.fetchShows()
 	      .then(function getShows(shows) {
 	          app.ports.loadShows.send(shows);
@@ -79,6 +82,16 @@
 	      .catch(function(err) {
 	          console.log(err);
 	      });
+	}
+
+	setTimeout(function() {
+	    db.sync(remoteCouch, {
+	      live: true,
+	      retry: true
+	    }).on('change', function() {
+	        fetchInitial();
+	    });
+	    fetchInitial();
 	}, 0);
 
 
