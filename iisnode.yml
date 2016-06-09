@@ -1,5 +1,7 @@
 # For documentation see https://github.com/tjanczuk/iisnode/blob/master/src/samples/configuration/iisnode.yml
 
+loggingEnabled: true
+logDirectory: iisnode
 # loggingEnabled: false
 # debuggingEnabled: false
 # devErrorsEnabled: false
@@ -24,4 +26,4 @@
 # logFileFlushInterval: 5000
 # flushResponse: false
 # enableXFF: false
-# promoteServerVars:  
+# promoteServerVars:
