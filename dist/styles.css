@@ -1,0 +1,43 @@
+body {
+    font-family: Roboto, "Helvetica Neue", Helvetica, Arial;
+    background-color: #f4f4f4;
+}
+
+.app-AppContainer {
+    padding-bottom: 80px;
+}
+
+.c-show-ShowImage {
+    height: 200px;
+}
+
+.c-show-Button {
+    width: 136px;
+}
+
+@media screen and ( max-width: 600px ) {
+        .c-show-ShowImage {
+    height: 100px;
+}
+}
+
+@media screen and ( max-width: 342px ) {
+        .c-show-Button {
+    margin-right: 8px;
+}
+}
+
+.c-search-SearchCollapsed {
+    padding-bottom: 60px;
+    margin-top: -32px;
+}
+
+@media screen and ( max-width: 450px ) {
+        .c-search-SearchCollapsed {
+    padding-bottom: 0px;
+    margin-top: 0px;
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+}
+}
