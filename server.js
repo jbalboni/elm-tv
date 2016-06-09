@@ -1,13 +1,13 @@
 const path = require('path');
 const express = require('express');
-const webpack = require('webpack');
-const config = require('./webpack.config.js');
 
 const app = express();
-const compiler = webpack(config);
 
 if (process.env.NODE_ENV !== 'production') {
-    var dotenv = require('dotenv');
+    const webpack = require('webpack');
+    const config = require('./webpack.config.js');
+    const compiler = webpack(config);
+    const dotenv = require('dotenv');
     dotenv.load();
 
     app.use(require('webpack-dev-middleware')(compiler, {
