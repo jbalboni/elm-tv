@@ -2,24 +2,28 @@
   "name": "elm-tv",
   "version": "1.0.0",
   "description": "App for tracking what TV shows you're watching have episodes to watch",
-  "main": "elm.js",
+  "main": "client/index.js",
   "directories": {
     "test": "test"
   },
   "dependencies": {
-    "elm-webpack-loader": "^3.0.3",
-    "localforage": "^1.4.2",
-    "pouchdb": "^5.4.0",
-    "webpack": "^1.13.1"
+    "azureleveldown": "0.0.3",
+    "dotenv": "^2.0.0",
+    "express": "^4.13.4",
+    "express-pouchdb": "^1.0.3",
+    "pouchdb-browser": "^5.4.1",
+    "pouchdb-node": "^5.4.1"
   },
   "devDependencies": {
+    "elm-webpack-loader": "^3.0.3",
     "file-loader": "^0.8.5",
     "webpack": "^1.13.1",
+    "webpack-dev-middleware": "^1.6.1",
     "webpack-dev-server": "^1.14.1"
   },
   "scripts": {
     "build": "webpack && elm-css src/Stylesheets.elm --output dist/",
-    "server": "webpack-dev-server --port=3000"
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",

@@ -2,5 +2,8 @@ elm.js
 elm-stuff
 random
 styles.css
-dist/
 node_modules
+.env
+config.json
+log.txt
+pouch/
