@@ -8,7 +8,6 @@ var createStore = require('./store');
 var PouchDB = require('pouchdb-browser');
 
 var remoteCouch = window.location.protocol + '//' + window.location.host + '/db/shows';
-//var remoteCouch = 'https://fortionturinteredentlyne:5aee0a25287da2371ae7167927eb54d71751342f@jbalboni.cloudant.com/shows';
 
 Elm = require('../src/App/App.elm');
 
@@ -28,7 +27,7 @@ app.ports.persistShow.subscribe(function(show) {
     });
 });
 
-function fetchInitial() {
+function fetchAll() {
     store.fetchShows()
       .then(function getShows(shows) {
           app.ports.loadShows.send(shows);
@@ -40,10 +39,12 @@ function fetchInitial() {
 
 setTimeout(function() {
     db.sync(remoteCouch, {
-      live: true,
-      retry: true
-    }).on('change', function() {
-        fetchInitial();
+        live: true,
+        retry: true
+    }).on('change', function(change) {
+        if (change.direction === 'pull') {
+            fetchAll();
+        }
     });
-    fetchInitial();
+    fetchAll();
 }, 0);

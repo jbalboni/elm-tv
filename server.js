@@ -4,14 +4,13 @@ const express = require('express');
 const app = express();
 
 if (process.env.NODE_ENV !== 'production') {
+    console.log('here');
     const webpack = require('webpack');
     const config = require('./webpack.config.js');
     const compiler = webpack(config);
-    const dotenv = require('dotenv');
-    dotenv.load();
 
     app.use(require('webpack-dev-middleware')(compiler, {
-        noInfo: true,
+        noInfo: false, //true,
         publicPath: '/dist'
     }));
 }
@@ -25,7 +24,7 @@ if (process.env.NODE_ENV === 'production') {
             if (req.url.match(pattern)) {
                 var db_path = req.url.match(pattern)[1],
                     db_url = [host, db_path].join('/');
-                console.log(db_url);
+
                 req.pipe(request[req.method.toLowerCase()](db_url)).pipe(res);
             } else {
                 next();
@@ -33,7 +32,6 @@ if (process.env.NODE_ENV === 'production') {
         }
     };
 
-    console.log(`https://${process.env.CLOUDANT_USER}:${process.env.CLOUDANT_PASS}@${process.env.CLOUDANT_HOST}.cloudant.com`);
     app.use(forward(/\/db\/(.*)/, `https://${process.env.CLOUDANT_USER}:${process.env.CLOUDANT_PASS}@${process.env.CLOUDANT_HOST}.cloudant.com`));
 } else {
     var PouchDB = require('pouchdb-node');

@@ -7,7 +7,7 @@ module.exports = {
 
     output: {
         path: path.join(__dirname, 'dist'),
-        filename: 'index.js',
+        filename: 'bundle.js',
         publicPath: '/dist/'
     },
 
@@ -33,11 +33,6 @@ module.exports = {
           'process.env': {
             'NODE_ENV': JSON.stringify('development')
           }
-        }),
-        // new webpack.optimize.UglifyJsPlugin({
-        //   compress:{
-        //     warnings: true
-        //   }
-        // })
+        })
     ]
 };

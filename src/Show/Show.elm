@@ -37,26 +37,27 @@ type alias Episode =
 
 
 type alias Season =
-    { number : Int, episodes : List Episode, visible : Bool }
+    { number : Int, episodes : List Episode }
 
 
 type alias Show =
-    { id : Int, lastEpisodeWatched : Int, name : String, image : Maybe String, seasons : List Season, seasonsVisible : Bool, rev : String }
+    { id : Int, lastEpisodeWatched : Int, name : String, image : Maybe String, seasons : List Season, rev : String }
 
 
 type alias Model =
-    { today : Date, show : Show }
+    { today : Date, show : Show, seasonsListVisible : Bool, visibleSeasons : Dict.Dict Int Bool }
 
 
 model =
     ( { today = Date.fromTime 0
+      , seasonsListVisible = False
+      , visibleSeasons = Dict.empty
       , show =
             { id = 0
             , name = ""
             , lastEpisodeWatched = 0
             , image = Nothing
             , seasons = []
-            , seasonsVisible = False
             , rev = ""
             }
       }
@@ -111,6 +112,16 @@ update msg model =
     case msg of
         SetTodaysDate date ->
             ( { model | today = date }, Cmd.none )
+
+        ToggleSeasons isVisible ->
+            ( { model | seasonsListVisible = isVisible }, Cmd.none )
+
+        ToggleSeason number isVisible ->
+            let
+                updatedVisible =
+                    Dict.insert number isVisible model.visibleSeasons
+            in
+                ( { model | visibleSeasons = updatedVisible }, Cmd.none )
 
         _ ->
             let
@@ -188,8 +199,7 @@ updateShow msg model =
                         |> groupWhile (\cur next -> cur.season == next.season)
                         |> List.map
                             (\episodes ->
-                                { visible = False
-                                , episodes = episodes
+                                { episodes = episodes
                                 , number = (getSeason episodes)
                                 }
                             )
@@ -208,23 +218,6 @@ updateShow msg model =
         UpdateShow ->
             ( model, Task.perform ShowError UpdateEpisodes (fetchShow model) )
 
-        ToggleSeasons isVisible ->
-            ( { model | seasonsVisible = isVisible }, Cmd.none )
-
-        ToggleSeason number isVisible ->
-            let
-                newSeasons =
-                    List.map
-                        (\season ->
-                            (if season.number == number then
-                                { season | visible = isVisible }
-                             else
-                                season
-                            )
-                        )
-                        model.seasons
-            in
-                ( { model | seasons = newSeasons }, Cmd.none )
 
         SetRev rev ->
             ( { model | rev = rev }, Cmd.none )
@@ -263,8 +256,8 @@ viewEpisode lastEpisodeWatched episode =
         ]
 
 
-viewEpisodes lastEpisodeWatched season =
-    case season.visible of
+viewEpisodes lastEpisodeWatched isVisible season =
+    case isVisible of
         True ->
             div []
                 ((List.intersperse (hr [] []) (List.map (viewEpisode lastEpisodeWatched) season.episodes)) ++ [ (hr [] []) ])
@@ -272,44 +265,50 @@ viewEpisodes lastEpisodeWatched season =
         False ->
             div [] []
 
+viewSeason lastEpisodeWatched visibleSeasons season =
+    let
+        isVisible =
+            case Dict.get season.number visibleSeasons of
+                Nothing ->
+                    False
 
-viewSeasons lastEpisodeWatched seasons =
+                Just visible ->
+                    visible
+    in
+        div []
+            [ div [ style [ ( "display", "flex" ), ( "justify-content", "space-between" ), ( "flex-wrap", "wrap" ) ] ]
+                [ div [ class "mui--text-title", style [ ( "line-height", "43px" ), ( "width", "50%" ) ] ]
+                    [ text ("Season " ++ (toString season.number)) ]
+                , div []
+                    [ div []
+                        [ (if (hasSeasonBeenWatched lastEpisodeWatched season) == True then
+                            div [] []
+                           else
+                            (button [ onClick (MarkSeasonWatched season.number), class "mui-btn mui-btn--primary mui-btn--small c-show-Button" ]
+                                [ text "I watched this" ]
+                            )
+                          )
+                        ]
+                    , div [ style [ ( "text-align", "right" ) ] ]
+                        [ button [ onClick (ToggleSeason season.number (not isVisible)), class "mui-btn mui-btn--accent mui-btn--small c-show-Button" ]
+                            [ text
+                                (if isVisible then
+                                    "Hide episodes"
+                                 else
+                                    "Show episodes"
+                                )
+                            ]
+                        ]
+                    ]
+                ]
+            , hr [] []
+            , viewEpisodes lastEpisodeWatched isVisible season
+            ]
+
+viewSeasons lastEpisodeWatched seasons visibleSeasons =
     div []
         ((hr [] [])
-            :: (List.map
-                    (\season ->
-                        div []
-                            [ div [ style [ ( "display", "flex" ), ( "justify-content", "space-between" ), ( "flex-wrap", "wrap" ) ] ]
-                                [ div [ class "mui--text-title", style [ ( "line-height", "43px" ), ( "width", "50%" ) ] ]
-                                    [ text ("Season " ++ (toString season.number)) ]
-                                , div []
-                                    [ div []
-                                        [ (if (hasSeasonBeenWatched lastEpisodeWatched season) == True then
-                                            div [] []
-                                           else
-                                            (button [ onClick (MarkSeasonWatched season.number), class "mui-btn mui-btn--primary mui-btn--small c-show-Button" ]
-                                                [ text "I watched this" ]
-                                            )
-                                          )
-                                        ]
-                                    , div [ style [ ( "text-align", "right" ) ] ]
-                                        [ button [ onClick (ToggleSeason season.number (not season.visible)), class "mui-btn mui-btn--accent mui-btn--small c-show-Button" ]
-                                            [ text
-                                                (if season.visible then
-                                                    "Hide episodes"
-                                                 else
-                                                    "Show episodes"
-                                                )
-                                            ]
-                                        ]
-                                    ]
-                                ]
-                            , hr [] []
-                            , viewEpisodes lastEpisodeWatched season
-                            ]
-                    )
-                    seasons
-               )
+            :: (List.map (viewSeason lastEpisodeWatched visibleSeasons) seasons)
         )
 
 
@@ -328,7 +327,8 @@ airedSeasons today seasons =
         |> List.filter (\season -> season.episodes /= [])
 
 
-viewShow today show =
+view : Model -> Html Msg
+view {today, show, visibleSeasons, seasonsListVisible} =
     let
         seasons =
             airedSeasons today show.seasons
@@ -375,9 +375,9 @@ viewShow today show =
                         ]
                     ]
                 ]
-            , button [ onClick (ToggleSeasons (not show.seasonsVisible)), class "mui-btn mui-btn--accent mui-btn--small c-show-Button" ]
+            , button [ onClick (ToggleSeasons (not seasonsListVisible)), class "mui-btn mui-btn--accent mui-btn--small c-show-Button" ]
                 [ text
-                    (if show.seasonsVisible then
+                    (if seasonsListVisible then
                         "Hide seasons"
                      else
                         "Show seasons"
@@ -389,13 +389,9 @@ viewShow today show =
                else
                 div [] []
               )
-            , (if show.seasonsVisible == True then
-                viewSeasons show.lastEpisodeWatched seasons
+            , (if seasonsListVisible == True then
+                viewSeasons show.lastEpisodeWatched seasons visibleSeasons
                else
                 div [] []
               )
             ]
-
-
-view model =
-    viewShow model.today model.show
