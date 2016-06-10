@@ -21,7 +21,7 @@
     "webpack-dev-server": "^1.14.1"
   },
   "scripts": {
-    "build": "webpack && elm-css src/Stylesheets.elm --output dist/",
+    "styles": "elm-css src/Stylesheets.elm --output dist/",
     "prod": "webpack --config webpack.prod.config.js && elm-css src/Stylesheets.elm --output dist/",
     "start": "node server.js"
   },

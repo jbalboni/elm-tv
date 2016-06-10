@@ -26,6 +26,7 @@ css =
                 , position fixed
                 , bottom (px 15)
                 , right (px 15)
+                , property "z-index" "2"
                 ]
             ]
         ]

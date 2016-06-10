@@ -7,7 +7,7 @@ import Api.Types exposing (decodeTVShowResult, decodeTVShowEpisode)
 
 
 baseUrl =
-    "http://api.tvmaze.com"
+    "/api"
 
 
 decodeShows =

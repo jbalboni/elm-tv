@@ -1,45 +1,15 @@
 const path = require('path');
 const express = require('express');
+const createDb = require('./server/createDb.js');
+const createApi = require('./server/createApi.js');
+const createWatchServer = require('./server/createWatchServer.js');
 
 const app = express();
 
-if (process.env.NODE_ENV !== 'production') {
-    console.log('here');
-    const webpack = require('webpack');
-    const config = require('./webpack.config.js');
-    const compiler = webpack(config);
-
-    app.use(require('webpack-dev-middleware')(compiler, {
-        noInfo: false, //true,
-        publicPath: '/dist'
-    }));
-}
-
+createWatchServer(app);
 app.use('/dist', express.static('dist'));
-
-if (process.env.NODE_ENV === 'production') {
-    var request = require('request');
-    var forward = function(pattern, host){
-        return function(req, res, next){
-            if (req.url.match(pattern)) {
-                var db_path = req.url.match(pattern)[1],
-                    db_url = [host, db_path].join('/');
-
-                req.pipe(request[req.method.toLowerCase()](db_url)).pipe(res);
-            } else {
-                next();
-            }
-        }
-    };
-
-    app.use(forward(/\/db\/(.*)/, `https://${process.env.CLOUDANT_USER}:${process.env.CLOUDANT_PASS}@${process.env.CLOUDANT_HOST}.cloudant.com`));
-} else {
-    var PouchDB = require('pouchdb-node');
-    var LocalPouchDB = PouchDB.defaults({prefix: './pouch/'});
-    var expressPouch = require('express-pouchdb')(LocalPouchDB);
-    app.use('/db', expressPouch);
-    var myPouch = new LocalPouchDB('shows');
-}
+createDb(app);
+createApi(app);
 
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'index.html'));
@@ -51,5 +21,5 @@ app.listen(process.env.port || 3000, '0.0.0.0', (err) => {
         return;
     }
 
-    console.log('Listening at http://localhost:3000');
+    console.log('Started server');
 });
