@@ -5,12 +5,6 @@
     "license": "BSD3",
     "source-directories": [
         "src",
-        "src/Types",
-        "src/Show",
-        "src/App",
-        "src/Shows",
-        "src/Api",
-        "src/Search",
         "test"
     ],
     "exposed-modules": [],

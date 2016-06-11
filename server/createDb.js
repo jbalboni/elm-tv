@@ -1,7 +1,9 @@
 const request = require('request');
-const forward = require('./forward.js');
-const dbPath = '/db';
 const crypto = require('crypto');
+
+const forward = require('./forward.js');
+
+const dbPath = '/db';
 const cloudantUrl = `https://${process.env.CLOUDANT_HOST}.cloudant.com`;
 const authHeader = {
     'Authorization': 'Basic ' + (new Buffer(`${process.env.CLOUDANT_USER}:${process.env.CLOUDANT_PASS}`).toString('base64'))

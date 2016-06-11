@@ -1,4 +1,4 @@
-module Api exposing (..)
+module Api.Api exposing (..)
 
 import Http
 import Json.Decode as Json

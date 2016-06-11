@@ -4,7 +4,7 @@ import Html exposing (Html, button, div, text, input, label, span)
 import Html.App as Html
 import Html.Attributes exposing (type', class, placeholder)
 import Html.CssHelpers
-import App.Styles exposing (CssClasses(..), appNamespace)
+import Styles exposing (CssClasses(..), appNamespace)
 
 
 namespace =

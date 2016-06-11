@@ -1,4 +1,4 @@
-module App.Styles exposing (..)
+module Styles exposing (..)
 
 import Css exposing (..)
 import Css.Elements exposing (body, li)

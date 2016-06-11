@@ -1,11 +1,11 @@
-module Search exposing (model, Model, view, update, Msg(..))
+module Search.Search exposing (model, Model, view, update, Msg(..))
 
 import Set exposing (Set)
 import Html exposing (Html, button, div, text, input, label, span, img, hr, form)
 import Html.Attributes exposing (type', class, placeholder, style, src, disabled)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Api.Types exposing (TVShowResult)
-import Api
+import Api.Api as Api
 import Task
 import Http
 import Markdown

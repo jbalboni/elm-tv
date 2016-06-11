@@ -1,13 +1,12 @@
-port module Show exposing (Model, Show, model, view, update, Msg(UpdateShow, ShowError, SetRev))
+port module Show.Show exposing (Model, Show, model, view, update, Msg(UpdateShow, ShowError, SetRev))
 
 import Html exposing (Html, button, div, text, img, a, hr)
 import Html.Attributes exposing (class, style, src, href)
 import Html.Events exposing (onClick)
 import Dict
-import Api
 import Http
 import Task
-import Api
+import Api.Api as Api
 import List.Extra exposing (groupWhile)
 import Markdown
 import Api.Types exposing (TVShowEpisode)

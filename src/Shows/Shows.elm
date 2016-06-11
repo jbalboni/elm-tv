@@ -1,11 +1,11 @@
-port module Shows exposing (Model, Msg(AddToList), model, view, update, subscriptions)
+port module Shows.Shows exposing (Model, Msg(AddToList), model, view, update, subscriptions)
 
 import Html exposing (Html, div, hr, text)
 import Html.Attributes exposing (style, class)
 import Api.Types exposing (TVShowResult, TVShowEpisode)
 import Http
 import Html.App as App
-import Show exposing (Msg(UpdateShow, ShowError, SetRev))
+import Show.Show as Show exposing (Msg(UpdateShow, ShowError, SetRev))
 
 
 -- Model

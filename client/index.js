@@ -12,7 +12,7 @@ var createStore = require('./store');
 var serverSync = require('./server-sync.js');
 var PouchDB = require('pouchdb-browser');
 
-Elm = require('../src/App/App.elm');
+Elm = require('../src/App.elm');
 
 db = new PouchDB('shows');
 

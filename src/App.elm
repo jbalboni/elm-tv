@@ -2,10 +2,10 @@ module Main exposing (..)
 
 import Html.App as App
 import Html exposing (Html, div)
-import Search exposing (Msg(AddShow))
-import Shows exposing (Msg(AddToList))
-import AppLayout
 import Set exposing (Set)
+import Search.Search as Search exposing (Msg(AddShow))
+import Shows.Shows as Shows exposing (Msg(AddToList))
+import AppLayout
 
 
 main =
