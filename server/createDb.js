@@ -1,7 +1,6 @@
 const request = require('request');
 const forward = require('./forward.js');
 const dbPath = '/db';
-require('dotenv').load();
 const crypto = require('crypto');
 const cloudantUrl = `https://${process.env.CLOUDANT_HOST}.cloudant.com`;
 const authHeader = {
