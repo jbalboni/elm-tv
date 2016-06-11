@@ -2,7 +2,7 @@ port module Stylesheets exposing (..)
 
 import Css.File exposing (..)
 import Css exposing (stylesheet)
-import App.Styles as AppStyles
+import Styles as AppStyles
 import Show.Styles as ShowStyles
 import Search.Styles as SearchStyles
 import Html exposing (div)
