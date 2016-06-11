@@ -7,18 +7,25 @@
     "test": "test"
   },
   "dependencies": {
+    "auth0-lock": "^9.2.1",
     "express": "^4.13.4",
+    "express-jwt": "^3.4.0",
     "pouchdb-browser": "^5.4.1"
   },
   "devDependencies": {
-    "pouchdb-node": "^5.4.1",
-    "express-pouchdb": "^1.0.3",
+    "auth0-js": "^7.0.2",
     "dotenv": "^2.0.0",
     "elm-webpack-loader": "^3.0.3",
+    "es6-promise": "^3.2.1",
+    "express-pouchdb": "^1.0.3",
     "file-loader": "^0.8.5",
+    "json-loader": "^0.5.4",
+    "pouchdb-node": "^5.4.1",
+    "transform-loader": "^0.2.3",
     "webpack": "^1.13.1",
     "webpack-dev-middleware": "^1.6.1",
-    "webpack-dev-server": "^1.14.1"
+    "webpack-dev-server": "^1.14.1",
+    "whatwg-fetch": "^1.0.0"
   },
   "scripts": {
     "styles": "elm-css src/Stylesheets.elm --output dist/",

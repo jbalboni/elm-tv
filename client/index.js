@@ -1,13 +1,16 @@
 'use strict';
 
+require('es6-promise').polyfill();
+require('whatwg-fetch');
+
 var Elm;
 var app;
 var store;
-var db
+var db;
+var token;
 var createStore = require('./store');
+var serverSync = require('./server-sync.js');
 var PouchDB = require('pouchdb-browser');
-
-var remoteCouch = window.location.protocol + '//' + window.location.host + '/db/shows';
 
 Elm = require('../src/App/App.elm');
 
@@ -15,7 +18,7 @@ db = new PouchDB('shows');
 
 store = createStore(db);
 
-app = Elm.Main.fullscreen();
+app = Elm.Main.embed(document.getElementById('elm'));
 
 app.ports.persistShow.subscribe(function(show) {
   store.saveShow(show)
@@ -37,11 +40,10 @@ function fetchAll() {
       });
 }
 
+serverSync.authenticate();
+
 setTimeout(function() {
-    db.sync(remoteCouch, {
-        live: true,
-        retry: true
-    }).on('change', function(change) {
+    serverSync.start(db, function onChange(change) {
         if (change.direction === 'pull') {
             fetchAll();
         }
