@@ -33,39 +33,41 @@ exports.authenticate = function start() {
     }
 };
 
+exports.isAuthenticated = function isAuthenticated() {
+    return !!localStorage.id_token;
+}
+
 exports.start = function sync(localDb, onChange) {
     var token = localStorage.id_token;
-    if (token) {
-        fetch('/db/name', {
-            method: 'POST',
-            withCredentials: true,
-            headers: {
-                'Authorization': 'Bearer ' + token
-            }
-        }).then(function(response) {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Failed to get database name');
-            }
-        }).then(function(data) {
-            var remoteDb = new PouchDB(remoteUrl + data.name, {
-                ajax: {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
+    fetch('/db/name', {
+        method: 'POST',
+        withCredentials: true,
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    }).then(function(response) {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Failed to get database name');
+        }
+    }).then(function(data) {
+        var remoteDb = new PouchDB(remoteUrl + data.name, {
+            ajax: {
+                headers: {
+                    'Authorization': 'Bearer ' + token
                 }
-            });
-            localDb.sync(remoteDb, {
-                live: true,
-                retry: true
-            }).on('change', function(change) {
-                if (onChange) {
-                    onChange(change);
-                }
-            });
-        })
-    }
+            }
+        });
+        localDb.sync(remoteDb, {
+            live: true,
+            retry: true
+        }).on('change', function(change) {
+            if (onChange) {
+                onChange(change);
+            }
+        });
+    });
 }
 
 module.exports = exports;

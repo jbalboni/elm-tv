@@ -43,11 +43,13 @@ function fetchAll() {
 serverSync.authenticate();
 
 setTimeout(function() {
-    serverSync.start(db, function onChange(change) {
-        if (change.direction === 'pull') {
-            fetchAll();
-        }
-    });
+    if (serverSync.isAuthenticated()) {
+        serverSync.start(db, function onChange(change) {
+            if (change.direction === 'pull') {
+                fetchAll();
+            }
+        });
+    }
     fetchAll();
 }, 0);
 
