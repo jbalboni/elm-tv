@@ -1,7 +1,7 @@
 port module Show.Show exposing (Model, Show, model, view, update, Msg(UpdateShow, ShowError, SetRev))
 
 import Html exposing (Html, button, div, text, img, a, hr)
-import Html.Attributes exposing (class, style, src, href)
+import Html.Attributes exposing (class, style, src, href, disabled)
 import Html.Events exposing (onClick)
 import Dict
 import Http
@@ -12,20 +12,8 @@ import Markdown
 import Api.Types exposing (TVShowEpisode)
 import Date exposing (Date)
 import Date.Extra.Compare as Compare exposing (is, Compare2(..))
-import Debug
 import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
-import Html.CssHelpers
-import Show.Styles exposing (CssClasses(..), componentNamespace)
-
-
-namespace =
-    Html.CssHelpers.withNamespace componentNamespace
-
-
-localClass =
-    namespace.class
-
 
 
 -- MODEL
@@ -217,7 +205,6 @@ updateShow msg model =
         UpdateShow ->
             ( model, Task.perform ShowError UpdateEpisodes (fetchShow model) )
 
-
         SetRev rev ->
             ( { model | rev = rev }, Cmd.none )
 
@@ -240,18 +227,14 @@ hasSeasonBeenWatched lastWatchedEpisode season =
 
 viewEpisode lastEpisodeWatched episode =
     div []
-        [ div [ class "mui--text-subhead" ]
+        [ div [ class "mdl-typography--title" ]
             [ text ("Episode " ++ (toString episode.number) ++ " - " ++ episode.name) ]
         , div []
             [ (Markdown.toHtml [] episode.summary) ]
-        , (if episode.id > lastEpisodeWatched then
-            div [ style [ ( "display", "flex" ), ( "justify-content", "flex-end" ) ] ]
-                [ button [ onClick (MarkEpisodeWatched episode.id), class "mui-btn mui-btn--primary mui-btn--small c-show-Button" ]
-                    [ text "I watched this" ]
-                ]
-           else
-            div [] []
-          )
+        , div [ style [ ( "display", "flex" ), ( "justify-content", "flex-end" ) ] ]
+            [ button [ onClick (MarkEpisodeWatched episode.id), disabled (episode.id <= lastEpisodeWatched), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
+                [ text "I watched this" ]
+            ]
         ]
 
 
@@ -259,10 +242,11 @@ viewEpisodes lastEpisodeWatched isVisible season =
     case isVisible of
         True ->
             div []
-                ((List.intersperse (hr [] []) (List.map (viewEpisode lastEpisodeWatched) season.episodes)) ++ [ (hr [] []) ])
+                (List.map (viewEpisode lastEpisodeWatched) season.episodes)
 
         False ->
             div [] []
+
 
 viewSeason lastEpisodeWatched visibleSeasons season =
     let
@@ -276,20 +260,20 @@ viewSeason lastEpisodeWatched visibleSeasons season =
     in
         div []
             [ div [ style [ ( "display", "flex" ), ( "justify-content", "space-between" ), ( "flex-wrap", "wrap" ) ] ]
-                [ div [ class "mui--text-title", style [ ( "line-height", "43px" ), ( "width", "50%" ) ] ]
+                [ div [ class "mdl-typography--headline", style [ ( "line-height", "43px" ), ( "width", "50%" ) ] ]
                     [ text ("Season " ++ (toString season.number)) ]
                 , div []
                     [ div []
                         [ (if (hasSeasonBeenWatched lastEpisodeWatched season) == True then
                             div [] []
                            else
-                            (button [ onClick (MarkSeasonWatched season.number), class "mui-btn mui-btn--primary mui-btn--small c-show-Button" ]
+                            (button [ onClick (MarkSeasonWatched season.number), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
                                 [ text "I watched this" ]
                             )
                           )
                         ]
                     , div [ style [ ( "text-align", "right" ) ] ]
-                        [ button [ onClick (ToggleSeason season.number (not isVisible)), class "mui-btn mui-btn--accent mui-btn--small c-show-Button" ]
+                        [ button [ onClick (ToggleSeason season.number (not isVisible)), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent elmtv__button--spacing" ]
                             [ text
                                 (if isVisible then
                                     "Hide episodes"
@@ -303,6 +287,7 @@ viewSeason lastEpisodeWatched visibleSeasons season =
             , hr [] []
             , viewEpisodes lastEpisodeWatched isVisible season
             ]
+
 
 viewSeasons lastEpisodeWatched seasons visibleSeasons =
     div []
@@ -327,7 +312,7 @@ airedSeasons today seasons =
 
 
 view : Model -> Html Msg
-view {today, show, visibleSeasons, seasonsListVisible} =
+view { today, show, visibleSeasons, seasonsListVisible } =
     let
         seasons =
             airedSeasons today show.seasons
@@ -359,12 +344,12 @@ view {today, show, visibleSeasons, seasonsListVisible} =
     in
         div []
             [ div [ style [ ( "display", "flex" ), ( "overflow", "auto" ), ( "min-height", "100px" ), ( "margin-bottom", "15px" ) ] ]
-                [ img [ localClass [ ShowImage ], src (Maybe.withDefault "http://lorempixel.com/72/100/abstract" show.image) ]
+                [ img [ class "c-show-ShowImage", src (Maybe.withDefault "http://lorempixel.com/72/100/abstract" show.image) ]
                     []
                 , div [ style [ ( "padding-left", "15px" ), ( "flex", "1" ) ] ]
-                    [ div [ class "mui--text-title" ]
+                    [ div [ class "mdl-typography--headline" ]
                         [ text show.name ]
-                    , div [ class "mui--text-subhead" ]
+                    , div [ class "mdl-typography--title" ]
                         [ text
                             (if (numEpisodes > 0) then
                                 unwatchedEpisodesDesc
@@ -374,7 +359,7 @@ view {today, show, visibleSeasons, seasonsListVisible} =
                         ]
                     ]
                 ]
-            , button [ onClick (ToggleSeasons (not seasonsListVisible)), class "mui-btn mui-btn--accent mui-btn--small c-show-Button" ]
+            , button [ onClick (ToggleSeasons (not seasonsListVisible)), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
                 [ text
                     (if seasonsListVisible then
                         "Hide seasons"
@@ -383,7 +368,7 @@ view {today, show, visibleSeasons, seasonsListVisible} =
                     )
                 ]
             , (if unwatchedEpisodes /= 0 then
-                button [ class "mui-btn mui-btn--primary mui-btn--small c-show-Button", onClick MarkAllEpisodesWatched ]
+                button [ class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent elmtv__button--spacing", onClick MarkAllEpisodesWatched ]
                     [ text "I'm caught up" ]
                else
                 div [] []

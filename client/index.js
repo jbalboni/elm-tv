@@ -9,6 +9,7 @@ var store;
 var db;
 var token;
 var createStore = require('./store');
+var upgradeMDL = require('./upgrade-mdl');
 var serverSync = require('./server-sync.js');
 var PouchDB = require('pouchdb-browser');
 
@@ -17,6 +18,8 @@ Elm = require('../src/App.elm');
 db = new PouchDB('shows');
 
 store = createStore(db);
+
+upgradeMDL();
 
 app = Elm.Main.embed(document.getElementById('elm'));
 
@@ -30,6 +33,10 @@ app.ports.persistShow.subscribe(function(show) {
     });
 });
 
+app.ports.logInUser.subscribe(function(login) {
+    serverSync.logInUser();
+});
+
 function fetchAll() {
     store.fetchShows()
       .then(function getShows(shows) {
@@ -40,16 +47,15 @@ function fetchAll() {
       });
 }
 
-serverSync.authenticate();
-
 setTimeout(function() {
-    if (serverSync.isAuthenticated()) {
-        serverSync.start(db, function onChange(change) {
-            if (change.direction === 'pull') {
-                fetchAll();
-            }
+    serverSync.authenticate()
+        .then(function() {
+            serverSync.start(db, function onChange(change) {
+                if (change.direction === 'pull') {
+                    fetchAll();
+                }
+            });
         });
-    }
     fetchAll();
 }, 0);
 

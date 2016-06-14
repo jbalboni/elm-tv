@@ -10,6 +10,7 @@
     "auth0-lock": "^9.2.1",
     "express": "^4.13.4",
     "express-jwt": "^3.4.0",
+    "mutation-summary": "0.0.0",
     "pouchdb-browser": "^5.4.1"
   },
   "devDependencies": {
@@ -28,8 +29,7 @@
     "whatwg-fetch": "^1.0.0"
   },
   "scripts": {
-    "styles": "elm-css src/Stylesheets.elm --output dist/",
-    "prod": "webpack --config webpack.prod.config.js && elm-css src/Stylesheets.elm --output dist/ && cp client/index.html dist/index.html && sw-precache --config=sw-precache-config.json && mv service-worker.js dist/",
+    "prod": "webpack --config webpack.prod.config.js && cp client/index.html dist/index.html && sw-precache --config=sw-precache-config.json && mv service-worker.js dist/",
     "start": "node server.js"
   },
   "repository": {

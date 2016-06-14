@@ -2,24 +2,13 @@ module Search.Search exposing (model, Model, view, update, Msg(..))
 
 import Set exposing (Set)
 import Html exposing (Html, button, div, text, input, label, span, img, hr, form)
-import Html.Attributes exposing (type', class, placeholder, style, src, disabled)
+import Html.Attributes exposing (type', class, placeholder, style, src, disabled, id, for)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Api.Types exposing (TVShowResult)
 import Api.Api as Api
 import Task
 import Http
 import Markdown
-import Html.CssHelpers
-import Search.Styles exposing (CssClasses(..), componentNamespace)
-
-
-namespace =
-    Html.CssHelpers.withNamespace componentNamespace
-
-
-localClass =
-    namespace.class
-
 
 
 -- MODEL
@@ -101,9 +90,9 @@ viewTVShowResult shows result =
             [ img [ style [ ( "height", "100px" ) ], src (getImage result.show.image) ]
                 []
             , div [ style [ ( "padding-left", "15px" ), ( "flex", "1" ) ] ]
-                [ div [ class "mui--text-title" ]
+                [ div [ class "mdl-typography--headline" ]
                     [ text result.show.name ]
-                , div [ class "mui--text-subhead" ]
+                , div [ class "mdl-typography--title" ]
                     [ text
                         (case result.show.network of
                             Nothing ->
@@ -120,11 +109,11 @@ viewTVShowResult shows result =
         , div []
             [ (case (Set.member result.show.id shows) of
                 False ->
-                    button [ onClick (AddShow result), class "mui-btn mui-btn--primary" ]
+                    button [ onClick (AddShow result), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" ]
                         [ text "Add" ]
 
                 True ->
-                    button [ class "mui-btn mui-btn--primary", disabled True ]
+                    button [ class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored", disabled True ]
                         [ text "Already added" ]
               )
             ]
@@ -146,15 +135,17 @@ viewError error =
 expandedView model shows =
     form [ onSubmit Search ]
         [ div [ style [ ( "padding-top", "15px" ), ( "padding-bottom", "15px" ) ] ]
-            [ div [ class "mui-textfield mui-textfield--float-label" ]
-                [ input [ type' "text", onInput UpdateTerm ]
-                    []
-                , label []
-                    [ text "Search for shows" ]
+            [ div []
+                [ div [ class "mdl-textfield mdl-js-textfield mdl-textfield--floating-label" ]
+                    [ input [ type' "text", onInput UpdateTerm, class "mdl-textfield__input", id "searchInput" ]
+                        []
+                    , label [ class "mdl-textfield__label", for "searchInput" ]
+                        [ text "Search for shows" ]
+                    ]
                 ]
-            , button [ onClick Search, class "mui-btn mui-btn--primary", style [ ( "text-align", "right" ) ] ]
+            , button [ onClick Search, class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
                 [ text "Search" ]
-            , button [ onClick HideSearch, class "mui-btn mui-btn--danger" ]
+            , button [ onClick HideSearch, class "mdl-button mdl-js-button mdl-button--flat mdl-button--accent" ]
                 [ text "Cancel" ]
             ]
         , if (List.length model.results) > 0 then
@@ -167,9 +158,13 @@ expandedView model shows =
 
 
 collapsedView model =
-    div [ localClass [ SearchCollapsed ] ]
-        [ button [ onClick ShowSearch, class "mui-btn mui-btn--fab mui-btn--accent", style [ ( "float", "right" ) ] ]
-            [ text "+" ]
+    div [ class "c-search-SearchCollapsed" ]
+        [ div [ style [ ( "float", "right" ) ] ]
+            [ button [ class "mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored", onClick ShowSearch ]
+                [ span [ class "material-icons" ]
+                    [ text "add" ]
+                ]
+            ]
         ]
 
 

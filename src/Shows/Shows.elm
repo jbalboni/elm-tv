@@ -160,7 +160,7 @@ view model =
                         [ text err ]
 
                 Nothing ->
-                    div [ class "mui-panel", style [ ( "margin-top", "15px" ), ( "margin-bottom", "15px" ) ] ]
+                    div [ class "elmtv__panel mdl-shadow--2dp" ]
                         ((List.map (\show -> App.map (ShowMsg show.show.id) (Show.view show)) xs)
                             |> (List.intersperse (hr [] []))
                         )
