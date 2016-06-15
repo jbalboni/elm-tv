@@ -1,0 +1,131 @@
+@import "../node_modules/material-design-lite/src/_color-definitions";
+$color-primary: $palette-teal-500;
+$color-primary-dark: $palette-teal-700;
+$color-accent: $palette-red-A200;
+
+// Our primary is dark, so use $color-dark-contrast for overlaid text.
+$color-primary-contrast: $color-dark-contrast;
+// Our accent is dark, so use $color-dark-contrast for overlaid text.
+$color-accent-contrast: $color-dark-contrast;
+
+// Variables and mixins
+@import "../node_modules/material-design-lite/src/variables";
+@import "../node_modules/material-design-lite/src/mixins";
+
+// Resets and dependencies
+@import "../node_modules/material-design-lite/src/resets/resets";
+@import "../node_modules/material-design-lite/src/typography/typography";
+
+// Components
+@import "../node_modules/material-design-lite/src/palette/palette";
+@import "../node_modules/material-design-lite/src/ripple/ripple";
+@import "../node_modules/material-design-lite/src/animation/animation";
+//@import "badge/badge";
+@import "../node_modules/material-design-lite/src/button/button";
+//@import "card/card";
+//@import "checkbox/checkbox";
+//@import "data-table/data-table";
+//@import "dialog/dialog";
+//@import "footer/mega_footer";
+//@import "footer/mini_footer";
+//@import "icon-toggle/icon-toggle";
+//@import "list/list";
+//@import "menu/menu";
+//@import "progress/progress";
+@import "../node_modules/material-design-lite/src/layout/layout";
+//@import "radio/radio";
+//@import "slider/slider";
+//@import "snackbar/snackbar";
+@import "../node_modules/material-design-lite/src/spinner/spinner";
+//@import "switch/switch";
+//@import "tabs/tabs";
+@import "../node_modules/material-design-lite/src/textfield/textfield";
+//@import "tooltip/tooltip";
+@import "../node_modules/material-design-lite/src/shadow/shadow";
+@import "../node_modules/material-design-lite/src/grid/grid";
+
+body {
+    font-family: Roboto, "Helvetica Neue", Helvetica, Arial;
+    background-color: #f4f4f4;
+}
+
+.elmtv__header--no-drawer {
+    padding-left: 64px;
+}
+
+@media screen and ( max-width: 1024px ) {
+    .elmtv__header--no-drawer {
+        padding-left: 32px;
+    }
+}
+
+.elmtv__button--spacing {
+    margin: 8px 8px 8px 0;
+}
+
+.elmtv__panel {
+    padding: 16px;
+    margin: 16px 0;
+    background-color: white;
+}
+
+.elmtv__episode-desc {
+    margin-top: 8px;
+}
+
+@media screen and ( max-width: 1024px ) {
+    .mdl-typography--title {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .mdl-typography--headline {
+        font-size: 20px;
+        line-height: 26px;
+    }
+    .mdl-button:not(.mdl-button--fab) {
+        height: 32px;
+        line-height: 32px;
+        font-size: 12px;
+        min-width: 60px;
+    }
+}
+
+.app-AppContainer {
+    padding-bottom: 80px;
+}
+
+.c-show-ShowImage {
+    height: 200px;
+}
+
+.c-show-Button {
+    margin-right: 8px;
+}
+
+@media screen and ( max-width: 600px ) {
+        .c-show-ShowImage {
+    height: 100px;
+}
+}
+
+@media screen and ( max-width: 342px ) {
+        .c-show-Button {
+    margin-right: 8px;
+}
+}
+
+.c-search-SearchCollapsed {
+    padding-bottom: 0px;
+    margin-top: 0px;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 2;
+}
+
+@media screen and ( max-width: 450px ) {
+    .c-search-SearchCollapsed {
+        bottom: 15px;
+        right: 30px;
+    }
+}

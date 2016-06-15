@@ -99,7 +99,7 @@ view model =
                     []
                 , nav [ class "mdl-navigation" ]
                     [ a [ class "mdl-navigation__link", href "#", onClick LoginUser ]
-                        [ text "Sync with Google account" ]
+                        [ text "Sign in" ]
                     ]
                 ]
             ]

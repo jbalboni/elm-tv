@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "auth0-lock": "^9.2.1",
+    "compression": "^1.6.2",
     "express": "^4.13.4",
     "express-jwt": "^3.4.0",
     "mutation-summary": "0.0.0",
@@ -15,13 +16,21 @@
   },
   "devDependencies": {
     "auth0-js": "^7.0.2",
+    "cross-env": "^1.0.8",
     "dotenv": "^2.0.0",
     "elm-webpack-loader": "^3.0.3",
     "es6-promise": "^3.2.1",
     "express-pouchdb": "^1.0.3",
     "file-loader": "^0.8.5",
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "^2.0.10",
+    "gulp-load-plugins": "^1.2.4",
+    "gulp-sass": "^2.3.1",
     "json-loader": "^0.5.4",
+    "material-design-lite": "^1.1.3",
     "pouchdb-node": "^5.4.1",
+    "run-sequence": "^1.2.1",
+    "sw-precache": "^3.2.0",
     "transform-loader": "^0.2.3",
     "webpack": "^1.13.1",
     "webpack-dev-middleware": "^1.6.1",
@@ -29,7 +38,9 @@
     "whatwg-fetch": "^1.0.0"
   },
   "scripts": {
-    "prod": "webpack --config webpack.prod.config.js && cp client/index.html dist/index.html && sw-precache --config=sw-precache-config.json && mv service-worker.js dist/",
+    "styles": "gulp css",
+    "prod": "webpack --config webpack.prod.config.js && gulp css && cp client/index.html dist/index.html && cp client/service-worker.js dist/",
+    "start-prod": "cross-env NODE_ENV=production \"node server.js\"",
     "start": "node server.js"
   },
   "repository": {

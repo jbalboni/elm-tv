@@ -229,7 +229,7 @@ viewEpisode lastEpisodeWatched episode =
     div []
         [ div [ class "mdl-typography--title" ]
             [ text ("Episode " ++ (toString episode.number) ++ " - " ++ episode.name) ]
-        , div []
+        , div [ class "elmtv__episode-desc"]
             [ (Markdown.toHtml [] episode.summary) ]
         , div [ style [ ( "display", "flex" ), ( "justify-content", "flex-end" ) ] ]
             [ button [ onClick (MarkEpisodeWatched episode.id), disabled (episode.id <= lastEpisodeWatched), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
@@ -284,8 +284,8 @@ viewSeason lastEpisodeWatched visibleSeasons season =
                         ]
                     ]
                 ]
-            , hr [] []
             , viewEpisodes lastEpisodeWatched isVisible season
+            , hr [] []
             ]
 
 
@@ -343,7 +343,7 @@ view { today, show, visibleSeasons, seasonsListVisible } =
                     (toString unwatchedEpisodes) ++ " episodes to watch"
     in
         div []
-            [ div [ style [ ( "display", "flex" ), ( "overflow", "auto" ), ( "min-height", "100px" ), ( "margin-bottom", "15px" ) ] ]
+            [ div [ style [ ( "display", "flex" ), ( "overflow", "visible" ), ( "min-height", "100px" ), ( "margin-bottom", "15px" ) ] ]
                 [ img [ class "c-show-ShowImage", src (Maybe.withDefault "http://lorempixel.com/72/100/abstract" show.image) ]
                     []
                 , div [ style [ ( "padding-left", "15px" ), ( "flex", "1" ) ] ]

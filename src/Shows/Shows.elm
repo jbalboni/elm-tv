@@ -154,13 +154,7 @@ view model =
             div [] []
 
         xs ->
-            case model.error of
-                Just err ->
-                    div []
-                        [ text err ]
-
-                Nothing ->
-                    div [ class "elmtv__panel mdl-shadow--2dp" ]
-                        ((List.map (\show -> App.map (ShowMsg show.show.id) (Show.view show)) xs)
-                            |> (List.intersperse (hr [] []))
-                        )
+            div [ class "elmtv__panel mdl-shadow--2dp" ]
+                ((List.map (\show -> App.map (ShowMsg show.show.id) (Show.view show)) xs)
+                    |> (List.intersperse (hr [] []))
+                )

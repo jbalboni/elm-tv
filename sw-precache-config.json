@@ -1,8 +1,0 @@
-{
-  "staticFileGlobs": [
-    "dist/*.js",
-    "dist/*.css",
-    "dist/*.html"
-  ],
-  "navigateFallback": "/dist/index.html" 
-}
