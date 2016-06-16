@@ -29,7 +29,7 @@ model =
 
 type Msg
     = UpdateTerm String
-    | Search
+    | SearchShows
     | ShowResults (List TVShowResult)
     | ShowError Http.Error
     | ShowSearch
@@ -43,7 +43,7 @@ update msg model =
         UpdateTerm term ->
             ( { model | term = term }, Cmd.none )
 
-        Search ->
+        SearchShows ->
             ( model, Task.perform ShowError ShowResults (Api.searchShows model.term) )
 
         ShowResults results ->
@@ -133,7 +133,7 @@ viewError error =
 
 
 expandedView model shows =
-    form [ onSubmit Search ]
+    form [ onSubmit SearchShows ]
         [ div [ style [ ( "padding-top", "15px" ), ( "padding-bottom", "15px" ) ] ]
             [ div []
                 [ div [ class "mdl-textfield mdl-js-textfield mdl-textfield--floating-label" ]
@@ -143,9 +143,9 @@ expandedView model shows =
                         [ text "Search for shows" ]
                     ]
                 ]
-            , button [ onClick Search, class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
+            , button [ type' "submit", class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
                 [ text "Search" ]
-            , button [ onClick HideSearch, class "mdl-button mdl-js-button mdl-button--flat mdl-button--accent" ]
+            , button [ type' "button", onClick HideSearch, class "mdl-button mdl-js-button mdl-button--flat mdl-button--accent" ]
                 [ text "Cancel" ]
             ]
         , if (List.length model.results) > 0 then

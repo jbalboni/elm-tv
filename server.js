@@ -25,11 +25,7 @@ createDb(app, jwtCheck);
 createApi(app, jwtCheck);
 
 app.get('/service-worker.js', (req, res) => {
-    if (process.env.NODE_ENV !== 'production') {
-        res.sendFile(path.join(__dirname, 'client', 'service-worker.js'));
-    } else {
-        res.sendFile(path.join(__dirname, 'dist', 'service-worker.js'));
-    }
+    res.sendFile(path.join(__dirname, 'dist', 'service-worker.js'));
 });
 
 app.get('*', (req, res) => {

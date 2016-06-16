@@ -18,6 +18,6 @@ module.exports = function upgradeMDL() {
           { element: '.mdl-button' }
       ]
     });
-    
+
     return observer;
 }
