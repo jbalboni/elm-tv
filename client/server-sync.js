@@ -63,7 +63,7 @@ exports.logInUser = function logInUser() {
 
 exports.logOutUser = function logOutUser() {
     localStorage.clear('id_token');
-    return fetch('https://jbalboni.auth0.com/v2/logout', {
+    return fetch('https://' + process.env.AUTH0_URL + '/v2/logout', {
         withCredentials: true,
     }).then(function(response) {
         if (response.ok) {

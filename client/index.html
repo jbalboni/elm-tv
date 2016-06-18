@@ -9,7 +9,35 @@
     <link href="/dist/styles.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-    <div id="elm"></div>
+    <div id="elm">
+        <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+            <header class="mdl-layout__header">
+                <div class="mdl-layout__header-row elmtv__header--no-drawer">
+                    <span class="mdl-layout-title">Elm TV</span>
+                    <span class="mdl-layout-spacer"></span>
+                </div>
+            </header>
+            <main class="mdl-layout__content">
+                <div class="page-content">
+                    <div class="mdl-grid" style="max-width: 1200px;">
+                        <div class="mdl-cell mdl-cell--12-col">
+                            <div class="c-search-SearchCollapsed">
+                                <div style="float: right;">
+                                    <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
+                                        <span class="material-icons">add</span>
+                                        <span class="mdl-button__ripple-container">
+                                            <span class="mdl-ripple"></span>
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
     <script src="/dist/material.min.js"></script>
     <script src="/dist/bundle.js"></script>
 </body>
