@@ -33,8 +33,28 @@ app.ports.persistShow.subscribe(function(show) {
     });
 });
 
+app.ports.removeShow.subscribe(function(show) {
+  store.removeShow(show)
+    .catch(function(err) {
+        console.log(err);
+    });
+});
+
 app.ports.logInUser.subscribe(function(login) {
     serverSync.logInUser();
+});
+
+app.ports.logOutUser.subscribe(function(login) {
+    serverSync.logOutUser()
+        .then(function(loggedOut) {
+            if (loggedOut) {
+                app.ports.loggedInState.send({
+                    loggedIn: false,
+                    email: '',
+                    picture: ''
+                })
+            }
+        });
 });
 
 function fetchAll() {
@@ -49,7 +69,18 @@ function fetchAll() {
 
 setTimeout(function() {
     serverSync.authenticate()
-        .then(function() {
+        .then(function(token) {
+            serverSync.getProfile()
+                .then(function(profile) {
+                    app.ports.loggedInState.send({
+                        loggedIn: true,
+                        email: profile.email,
+                        picture: profile.picture
+                    });
+                })
+                .catch(function(err) {
+                    console.log(err);
+                });
             serverSync.start(db, function onChange(change) {
                 if (change.direction === 'pull') {
                     fetchAll();

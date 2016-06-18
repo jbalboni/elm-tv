@@ -1,7 +1,7 @@
 @import "../node_modules/material-design-lite/src/_color-definitions";
 $color-primary: $palette-teal-500;
 $color-primary-dark: $palette-teal-700;
-$color-accent: $palette-red-A200;
+$color-accent: $palette-pink-A200;
 
 // Our primary is dark, so use $color-dark-contrast for overlaid text.
 $color-primary-contrast: $color-dark-contrast;
@@ -71,6 +71,26 @@ body {
 
 .elmtv__episode-desc {
     margin-top: 8px;
+}
+
+.elmtv__profile-picture {
+    width: 30px;
+    height: 30px;
+    border-radius: 30px;
+    margin-right: 24px;
+}
+
+.elmtv__remove-show {
+    float: right;
+}
+
+@media screen and ( max-width: 600px ) {
+    .elmtv__profile-picture {
+        margin-right: 0;
+    }
+    .elmtv__profile-email {
+        display: none;
+    }
 }
 
 @media screen and ( max-width: 1024px ) {

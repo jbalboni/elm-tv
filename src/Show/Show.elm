@@ -1,6 +1,6 @@
-port module Show.Show exposing (Model, Show, model, view, update, Msg(UpdateShow, ShowError, SetRev))
+port module Show.Show exposing (Model, Show, model, view, update, Msg(UpdateShow, ShowError, SetRev, RemoveShow), ShowRemoval)
 
-import Html exposing (Html, button, div, text, img, a, hr)
+import Html exposing (Html, button, div, text, img, a, hr, span)
 import Html.Attributes exposing (class, style, src, href, disabled)
 import Html.Events exposing (onClick)
 import Dict
@@ -13,7 +13,7 @@ import Api.Types exposing (TVShowEpisode)
 import Date exposing (Date)
 import Date.Extra.Compare as Compare exposing (is, Compare2(..))
 import Date.Extra.Config.Config_en_au exposing (config)
-import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
+import Date.Extra.Format as Format exposing (format, utcIsoString, isoMsecOffsetFormat)
 
 
 -- MODEL
@@ -28,13 +28,17 @@ type alias Season =
 
 
 type alias Show =
-    { id : Int, lastEpisodeWatched : Int, name : String, image : Maybe String, seasons : List Season, rev : String }
+    { id : Int, lastEpisodeWatched : (Int, Int), name : String, image : Maybe String, seasons : List Season, rev : String, added : String }
 
 
 type alias Model =
     { today : Date, show : Show, seasonsListVisible : Bool, visibleSeasons : Dict.Dict Int Bool }
 
+type alias ShowRemoval =
+    { id : Int, rev : String }
 
+
+model : (Model, Cmd Msg)
 model =
     ( { today = Date.fromTime 0
       , seasonsListVisible = False
@@ -42,10 +46,11 @@ model =
       , show =
             { id = 0
             , name = ""
-            , lastEpisodeWatched = 0
+            , lastEpisodeWatched = (0, 0)
             , image = Nothing
             , seasons = []
             , rev = ""
+            , added = Date.fromTime 0 |> utcIsoString
             }
       }
     , Task.perform ShowTimeError SetTodaysDate Date.now
@@ -71,11 +76,11 @@ addEpisodesToShows shows episodesForShows =
         List.map (\show -> { show | episodes = Maybe.withDefault [] (Dict.get show.id showEpisodes) }) shows
 
 
-type Msg
-    = ToggleSeason Int Bool
+type Msg =
+    ToggleSeason Int Bool
     | MarkAllEpisodesWatched
     | MarkSeasonWatched Int
-    | MarkEpisodeWatched Int
+    | MarkEpisodeWatched (Int, Int)
     | ToggleSeasons Bool
     | UpdateShow
     | UpdateEpisodes (List TVShowEpisode)
@@ -83,6 +88,7 @@ type Msg
     | ShowTimeError String
     | SetTodaysDate Date
     | SetRev String
+    | RemoveShow ShowRemoval
 
 
 getSeason episodes =
@@ -110,6 +116,9 @@ update msg model =
             in
                 ( { model | visibleSeasons = updatedVisible }, Cmd.none )
 
+        RemoveShow show ->
+            ( model, Cmd.none )
+
         _ ->
             let
                 ( show, cmd ) =
@@ -121,10 +130,10 @@ update msg model =
 updateShow : Msg -> Show -> ( Show, Cmd Msg )
 updateShow msg model =
     case msg of
-        MarkEpisodeWatched id ->
+        MarkEpisodeWatched last ->
             let
                 updatedShow =
-                    { model | lastEpisodeWatched = id }
+                    { model | lastEpisodeWatched = last }
             in
                 ( updatedShow, persistShow updatedShow )
 
@@ -145,7 +154,7 @@ updateShow msg model =
                             latest :: _ ->
                                 let
                                     updatedShow =
-                                        { model | lastEpisodeWatched = latest.id }
+                                        { model | lastEpisodeWatched = (number, latest.number) }
                                 in
                                     ( updatedShow, persistShow updatedShow )
 
@@ -154,15 +163,15 @@ updateShow msg model =
                 latestEpisode =
                     case model.seasons of
                         [] ->
-                            0
+                            (0, 0)
 
                         season :: _ ->
                             case season.episodes of
                                 [] ->
-                                    0
+                                    (0, 0)
 
                                 episode :: _ ->
-                                    episode.id
+                                    (season.number, episode.number)
 
                 updatedShow =
                     { model | lastEpisodeWatched = latestEpisode }
@@ -215,6 +224,14 @@ updateShow msg model =
 
 -- VIEW
 
+episodeWatched (watchedSeason, watchedEpisode) episode =
+    if episode.season < watchedSeason then
+        True
+    else
+        if (episode.season == watchedSeason) && (episode.number <= watchedEpisode) then
+            True
+        else
+            False
 
 hasSeasonBeenWatched lastWatchedEpisode season =
     case season.episodes of
@@ -222,7 +239,7 @@ hasSeasonBeenWatched lastWatchedEpisode season =
             False
 
         latest :: _ ->
-            lastWatchedEpisode >= latest.id
+            episodeWatched lastWatchedEpisode latest
 
 
 viewEpisode lastEpisodeWatched episode =
@@ -232,7 +249,7 @@ viewEpisode lastEpisodeWatched episode =
         , div [ class "elmtv__episode-desc"]
             [ (Markdown.toHtml [] episode.summary) ]
         , div [ style [ ( "display", "flex" ), ( "justify-content", "flex-end" ) ] ]
-            [ button [ onClick (MarkEpisodeWatched episode.id), disabled (episode.id <= lastEpisodeWatched), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
+            [ button [ onClick (MarkEpisodeWatched (episode.season, episode.number)), disabled (episodeWatched lastEpisodeWatched episode), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
                 [ text "I watched this" ]
             ]
         ]
@@ -325,11 +342,11 @@ view { today, show, visibleSeasons, seasonsListVisible } =
 
         unwatchedEpisodes =
             case show.lastEpisodeWatched of
-                0 ->
+                (0, 0) ->
                     numEpisodes
 
                 _ ->
-                    List.length (List.filter (\episode -> episode.id > show.lastEpisodeWatched) episodes)
+                    List.length (List.filter (\episode -> not (episodeWatched show.lastEpisodeWatched episode)) episodes)
 
         unwatchedEpisodesDesc =
             case unwatchedEpisodes of
@@ -343,7 +360,11 @@ view { today, show, visibleSeasons, seasonsListVisible } =
                     (toString unwatchedEpisodes) ++ " episodes to watch"
     in
         div []
-            [ div [ style [ ( "display", "flex" ), ( "overflow", "visible" ), ( "min-height", "100px" ), ( "margin-bottom", "15px" ) ] ]
+            [ button [ onClick (RemoveShow { id = show.id, rev = show.rev }),  class "mdl-button mdl-js-button mdl-button--icon mdl-button--accent elmtv__remove-show" ]
+                [ span [ class "material-icons" ]
+                    [ text "delete" ]
+                ]
+            , div [ style [ ( "display", "flex" ), ( "overflow", "visible" ), ( "min-height", "100px" ), ( "margin-bottom", "15px" ) ] ]
                 [ img [ class "c-show-ShowImage", src (Maybe.withDefault "http://lorempixel.com/72/100/abstract" show.image) ]
                     []
                 , div [ style [ ( "padding-left", "15px" ), ( "flex", "1" ) ] ]

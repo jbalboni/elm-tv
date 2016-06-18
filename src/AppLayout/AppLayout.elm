@@ -7,21 +7,25 @@ import Html.Events exposing (onClick)
 import Set exposing (Set)
 import Search.Search as Search exposing (Msg(AddShow))
 import Shows.Shows as Shows exposing (Msg(AddToList))
+import Login.Login as Login
 
 
 -- MODEL
 
-
 type alias Model =
-    { search : Search.Model, shows : Shows.Model }
+    { search : Search.Model, shows : Shows.Model, login : Login.Model }
 
 
 init =
-    ( { search = Search.model
-      , shows = Shows.model
-      }
-    , Cmd.none
-    )
+    let
+        (searchModel, searchCmd) = Search.init
+    in
+        ( { search = searchModel
+          , shows = Shows.model
+          , login = Login.model
+          }
+        , Cmd.map SearchMsg searchCmd
+        )
 
 
 
@@ -31,15 +35,16 @@ init =
 type Msg
     = SearchMsg Search.Msg
     | ShowsMsg Shows.Msg
-    | LoginUser
-
-
-port logInUser : Bool -> Cmd msg
+    | LoginMsg Login.Msg
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.map ShowsMsg (Shows.subscriptions model.shows)
+    Sub.batch
+        [ Sub.map ShowsMsg (Shows.subscriptions model.shows)
+        , Sub.map LoginMsg (Login.subscriptions model.login)
+        ]
+
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -76,8 +81,12 @@ update msg model =
             in
                 ( { model | shows = showsModel }, Cmd.map ShowsMsg cmd )
 
-        LoginUser ->
-            ( model, logInUser True )
+        LoginMsg msg ->
+            let
+                (loginModel, loginCmd) =
+                    Login.update msg model.login
+            in
+                ( { model | login = loginModel }, Cmd.map LoginMsg loginCmd )
 
 
 
@@ -97,10 +106,7 @@ view model =
                     [ text "Elm TV" ]
                 , span [ class "mdl-layout-spacer" ]
                     []
-                , nav [ class "mdl-navigation" ]
-                    [ a [ class "mdl-navigation__link", href "#", onClick LoginUser ]
-                        [ text "Sign in" ]
-                    ]
+                , App.map LoginMsg (Login.view model.login)
                 ]
             ]
         , main' [ class "mdl-layout__content" ]

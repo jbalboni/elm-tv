@@ -1,4 +1,4 @@
-module Search.Search exposing (model, Model, view, update, Msg(..))
+module Search.Search exposing (init, Model, view, update, Msg(..))
 
 import Set exposing (Set)
 import Html exposing (Html, button, div, text, input, label, span, img, hr, form)
@@ -6,9 +6,11 @@ import Html.Attributes exposing (type', class, placeholder, style, src, disabled
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Api.Types exposing (TVShowResult)
 import Api.Api as Api
-import Task
+import Task exposing (andThen)
 import Http
 import Markdown
+import Date exposing (Date)
+import Date.Extra.Core exposing (fromTime)
 
 
 -- MODEL
@@ -22,7 +24,8 @@ model : Model
 model =
     { term = "", visible = False, results = [], error = Nothing }
 
-
+init =
+    (model, Cmd.none)
 
 -- UPDATE
 
@@ -34,7 +37,9 @@ type Msg
     | ShowError Http.Error
     | ShowSearch
     | HideSearch
-    | AddShow TVShowResult
+    | StartAdd TVShowResult
+    | AddShow (Date, TVShowResult)
+    | SwallowError String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -63,8 +68,14 @@ update msg model =
         HideSearch ->
             ( { model | visible = False }, Cmd.none )
 
+        StartAdd result ->
+            ( { model | visible = False, results = [] }, Date.now `andThen` (\date -> Task.succeed (date, result)) |> Task.perform SwallowError AddShow )
+
         AddShow _ ->
-            ( { model | visible = False }, Cmd.none )
+            ( model, Cmd.none )
+
+        SwallowError err ->
+            ( model, Cmd.none )
 
 
 
@@ -109,7 +120,7 @@ viewTVShowResult shows result =
         , div []
             [ (case (Set.member result.show.id shows) of
                 False ->
-                    button [ onClick (AddShow result), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" ]
+                    button [ onClick (StartAdd result), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" ]
                         [ text "Add" ]
 
                 True ->
@@ -121,14 +132,14 @@ viewTVShowResult shows result =
 
 
 viewResults results shows =
-    div [ class "mui-panel" ]
+    div [ class "elmtv__panel mdl-shadow--2dp" ]
         ((List.map (viewTVShowResult shows) results)
             |> (List.intersperse (hr [] []))
         )
 
 
 viewError error =
-    div [ class "mui-panel" ]
+    div [ class "elmtv__panel mdl-shadow--2dp" ]
         [ text (Maybe.withDefault "" error) ]
 
 

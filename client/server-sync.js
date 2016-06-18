@@ -61,6 +61,17 @@ exports.logInUser = function logInUser() {
     });
 };
 
+exports.logOutUser = function logOutUser() {
+    localStorage.clear('id_token');
+    return fetch('https://jbalboni.auth0.com/v2/logout', {
+        withCredentials: true,
+    }).then(function(response) {
+        if (response.ok) {
+            return true;
+        }
+    });
+};
+
 exports.start = function sync(localDb, onChange) {
     var token = localStorage.id_token;
     fetch('/db/name', {
@@ -91,6 +102,20 @@ exports.start = function sync(localDb, onChange) {
                 onChange(change);
             }
         });
+
+        return token;
+    });
+};
+
+exports.getProfile = function getProfile() {
+    return new Promise(function(resolve, reject) {
+        auth0.getProfile(localStorage.id_token, function(err, profile) {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(profile);
+        })
     });
 }
 

@@ -5,7 +5,9 @@ import Html.Attributes exposing (style, class)
 import Api.Types exposing (TVShowResult, TVShowEpisode)
 import Http
 import Html.App as App
-import Show.Show as Show exposing (Msg(UpdateShow, ShowError, SetRev))
+import Show.Show as Show exposing (Msg(UpdateShow, ShowError, SetRev, RemoveShow), ShowRemoval)
+import Date exposing (Date)
+import Date.Extra.Format as Format exposing (utcIsoString)
 
 
 -- Model
@@ -37,6 +39,9 @@ port loadShows : (List Show.Show -> msg) -> Sub msg
 port loadRev : (ShowRev -> msg) -> Sub msg
 
 
+port removeShow : Show.ShowRemoval -> Cmd msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
@@ -46,7 +51,7 @@ subscriptions model =
 
 
 type Msg
-    = AddToList TVShowResult
+    = AddToList (Date, TVShowResult)
     | LoadShows (List Show.Show)
     | ShowMsg Int Show.Msg
     | LoadRev ShowRev
@@ -84,6 +89,13 @@ update msg model =
     case msg of
         ShowMsg id subMsg ->
             case subMsg of
+                RemoveShow removal ->
+                    let
+                        listWithoutShow =
+                            List.filter (\show -> removal.id /= show.show.id) model.list
+                    in
+                        ( { model | list = listWithoutShow}, removeShow removal)
+
                 ShowError error ->
                     case error of
                         Http.UnexpectedPayload err ->
@@ -101,7 +113,7 @@ update msg model =
                         , Cmd.batch cmds
                         )
 
-        AddToList result ->
+        AddToList (today, result) ->
             let
                 getImage show =
                     case show.image of
@@ -118,7 +130,7 @@ update msg model =
                     defaultShowModel.show
 
                 updatedShow =
-                    { defaultShow | id = result.show.id, name = result.show.name, image = (getImage result.show) }
+                    { defaultShow | id = result.show.id, name = result.show.name, image = (getImage result.show), added = utcIsoString today }
 
                 ( newShow, cmds ) =
                     Show.update UpdateShow { defaultShowModel | show = updatedShow }
