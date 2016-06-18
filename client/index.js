@@ -24,7 +24,7 @@ upgradeMDL();
 app = Elm.Main.embed(document.getElementById('elm'));
 
 app.ports.persistShow.subscribe(function(show) {
-  store.saveShow(show)
+    store.saveShow(show)
     .then(function loadRev(response) {
         app.ports.loadRev.send({id: show.id, rev: response.rev});
     })
@@ -34,9 +34,16 @@ app.ports.persistShow.subscribe(function(show) {
 });
 
 app.ports.removeShow.subscribe(function(show) {
-  store.removeShow(show)
+    store.removeShow(show)
     .catch(function(err) {
         console.log(err);
+    });
+});
+
+app.ports.showNotification.subscribe(function(message) {
+    var snackbarContainer = document.querySelector('.js-elmtv__snackbar');
+    snackbarContainer.MaterialSnackbar.showSnackbar({
+        message: message
     });
 });
 
@@ -59,12 +66,12 @@ app.ports.logOutUser.subscribe(function(login) {
 
 function fetchAll() {
     store.fetchShows()
-      .then(function getShows(shows) {
-          app.ports.loadShows.send(shows);
-      })
-      .catch(function(err) {
-          console.log(err);
-      });
+        .then(function getShows(shows) {
+            app.ports.loadShows.send(shows);
+        })
+        .catch(function(err) {
+            console.log(err);
+        });
 }
 
 setTimeout(function() {

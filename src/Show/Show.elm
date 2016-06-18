@@ -28,17 +28,18 @@ type alias Season =
 
 
 type alias Show =
-    { id : Int, lastEpisodeWatched : (Int, Int), name : String, image : Maybe String, seasons : List Season, rev : String, added : String }
+    { id : Int, lastEpisodeWatched : ( Int, Int ), name : String, image : Maybe String, seasons : List Season, rev : String, added : String }
 
 
 type alias Model =
     { today : Date, show : Show, seasonsListVisible : Bool, visibleSeasons : Dict.Dict Int Bool }
 
+
 type alias ShowRemoval =
-    { id : Int, rev : String }
+    { id : Int, rev : String, name : String }
 
 
-model : (Model, Cmd Msg)
+model : ( Model, Cmd Msg )
 model =
     ( { today = Date.fromTime 0
       , seasonsListVisible = False
@@ -46,7 +47,7 @@ model =
       , show =
             { id = 0
             , name = ""
-            , lastEpisodeWatched = (0, 0)
+            , lastEpisodeWatched = ( 0, 0 )
             , image = Nothing
             , seasons = []
             , rev = ""
@@ -76,11 +77,11 @@ addEpisodesToShows shows episodesForShows =
         List.map (\show -> { show | episodes = Maybe.withDefault [] (Dict.get show.id showEpisodes) }) shows
 
 
-type Msg =
-    ToggleSeason Int Bool
+type Msg
+    = ToggleSeason Int Bool
     | MarkAllEpisodesWatched
     | MarkSeasonWatched Int
-    | MarkEpisodeWatched (Int, Int)
+    | MarkEpisodeWatched ( Int, Int )
     | ToggleSeasons Bool
     | UpdateShow
     | UpdateEpisodes (List TVShowEpisode)
@@ -154,7 +155,7 @@ updateShow msg model =
                             latest :: _ ->
                                 let
                                     updatedShow =
-                                        { model | lastEpisodeWatched = (number, latest.number) }
+                                        { model | lastEpisodeWatched = ( number, latest.number ) }
                                 in
                                     ( updatedShow, persistShow updatedShow )
 
@@ -163,15 +164,15 @@ updateShow msg model =
                 latestEpisode =
                     case model.seasons of
                         [] ->
-                            (0, 0)
+                            ( 0, 0 )
 
                         season :: _ ->
                             case season.episodes of
                                 [] ->
-                                    (0, 0)
+                                    ( 0, 0 )
 
                                 episode :: _ ->
-                                    (season.number, episode.number)
+                                    ( season.number, episode.number )
 
                 updatedShow =
                     { model | lastEpisodeWatched = latestEpisode }
@@ -224,14 +225,15 @@ updateShow msg model =
 
 -- VIEW
 
-episodeWatched (watchedSeason, watchedEpisode) episode =
+
+episodeWatched ( watchedSeason, watchedEpisode ) episode =
     if episode.season < watchedSeason then
         True
+    else if (episode.season == watchedSeason) && (episode.number <= watchedEpisode) then
+        True
     else
-        if (episode.season == watchedSeason) && (episode.number <= watchedEpisode) then
-            True
-        else
-            False
+        False
+
 
 hasSeasonBeenWatched lastWatchedEpisode season =
     case season.episodes of
@@ -246,10 +248,10 @@ viewEpisode lastEpisodeWatched episode =
     div []
         [ div [ class "mdl-typography--title" ]
             [ text ("Episode " ++ (toString episode.number) ++ " - " ++ episode.name) ]
-        , div [ class "elmtv__episode-desc"]
+        , div [ class "elmtv__episode-desc" ]
             [ (Markdown.toHtml [] episode.summary) ]
         , div [ style [ ( "display", "flex" ), ( "justify-content", "flex-end" ) ] ]
-            [ button [ onClick (MarkEpisodeWatched (episode.season, episode.number)), disabled (episodeWatched lastEpisodeWatched episode), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
+            [ button [ onClick (MarkEpisodeWatched ( episode.season, episode.number )), disabled (episodeWatched lastEpisodeWatched episode), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
                 [ text "I watched this" ]
             ]
         ]
@@ -342,7 +344,7 @@ view { today, show, visibleSeasons, seasonsListVisible } =
 
         unwatchedEpisodes =
             case show.lastEpisodeWatched of
-                (0, 0) ->
+                ( 0, 0 ) ->
                     numEpisodes
 
                 _ ->
@@ -360,7 +362,7 @@ view { today, show, visibleSeasons, seasonsListVisible } =
                     (toString unwatchedEpisodes) ++ " episodes to watch"
     in
         div []
-            [ button [ onClick (RemoveShow { id = show.id, rev = show.rev }),  class "mdl-button mdl-js-button mdl-button--icon mdl-button--accent elmtv__remove-show" ]
+            [ button [ onClick (RemoveShow { id = show.id, rev = show.rev, name = show.name }), class "mdl-button mdl-js-button mdl-button--icon mdl-button--accent elmtv__remove-show" ]
                 [ span [ class "material-icons" ]
                     [ text "delete" ]
                 ]

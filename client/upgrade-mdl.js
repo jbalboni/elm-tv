@@ -15,7 +15,8 @@ module.exports = function upgradeMDL() {
       callback: upgradeMDLComponent,
       queries: [
           { element: '.mdl-textfield' },
-          { element: '.mdl-button' }
+          { element: '.mdl-button' },
+          { element: '.mdl-snackbar' }
       ]
     });
 

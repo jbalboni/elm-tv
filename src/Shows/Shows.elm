@@ -8,6 +8,7 @@ import Html.App as App
 import Show.Show as Show exposing (Msg(UpdateShow, ShowError, SetRev, RemoveShow), ShowRemoval)
 import Date exposing (Date)
 import Date.Extra.Format as Format exposing (utcIsoString)
+import GlobalPorts exposing (showNotification)
 
 
 -- Model
@@ -51,7 +52,7 @@ subscriptions model =
 
 
 type Msg
-    = AddToList (Date, TVShowResult)
+    = AddToList ( Date, TVShowResult )
     | LoadShows (List Show.Show)
     | ShowMsg Int Show.Msg
     | LoadRev ShowRev
@@ -94,7 +95,7 @@ update msg model =
                         listWithoutShow =
                             List.filter (\show -> removal.id /= show.show.id) model.list
                     in
-                        ( { model | list = listWithoutShow}, removeShow removal)
+                        ( { model | list = listWithoutShow }, Cmd.batch [ removeShow removal, showNotification ("Removed " ++ removal.name) ] )
 
                 ShowError error ->
                     case error of
@@ -113,7 +114,7 @@ update msg model =
                         , Cmd.batch cmds
                         )
 
-        AddToList (today, result) ->
+        AddToList ( today, result ) ->
             let
                 getImage show =
                     case show.image of
@@ -138,7 +139,7 @@ update msg model =
                 newList =
                     newShow :: model.list
             in
-                ( { model | list = newList }, Cmd.batch [ Cmd.map (ShowMsg newShow.show.id) initialCmd, Cmd.map (ShowMsg newShow.show.id) cmds ] )
+                ( { model | list = newList }, Cmd.batch [ Cmd.map (ShowMsg newShow.show.id) initialCmd, Cmd.map (ShowMsg newShow.show.id) cmds, showNotification ("Added " ++ updatedShow.name) ] )
 
         LoadShows shows ->
             let

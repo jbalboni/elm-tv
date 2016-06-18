@@ -24,8 +24,11 @@ model : Model
 model =
     { term = "", visible = False, results = [], error = Nothing }
 
+
 init =
-    (model, Cmd.none)
+    ( model, Cmd.none )
+
+
 
 -- UPDATE
 
@@ -38,7 +41,7 @@ type Msg
     | ShowSearch
     | HideSearch
     | StartAdd TVShowResult
-    | AddShow (Date, TVShowResult)
+    | AddShow ( Date, TVShowResult )
     | SwallowError String
 
 
@@ -69,7 +72,7 @@ update msg model =
             ( { model | visible = False }, Cmd.none )
 
         StartAdd result ->
-            ( { model | visible = False, results = [] }, Date.now `andThen` (\date -> Task.succeed (date, result)) |> Task.perform SwallowError AddShow )
+            ( { model | visible = False, results = [] }, Date.now `andThen` (\date -> Task.succeed ( date, result )) |> Task.perform SwallowError AddShow )
 
         AddShow _ ->
             ( model, Cmd.none )

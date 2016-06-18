@@ -12,13 +12,15 @@ import Login.Login as Login
 
 -- MODEL
 
+
 type alias Model =
     { search : Search.Model, shows : Shows.Model, login : Login.Model }
 
 
 init =
     let
-        (searchModel, searchCmd) = Search.init
+        ( searchModel, searchCmd ) =
+            Search.init
     in
         ( { search = searchModel
           , shows = Shows.model
@@ -44,7 +46,6 @@ subscriptions model =
         [ Sub.map ShowsMsg (Shows.subscriptions model.shows)
         , Sub.map LoginMsg (Login.subscriptions model.login)
         ]
-
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -83,7 +84,7 @@ update msg model =
 
         LoginMsg msg ->
             let
-                (loginModel, loginCmd) =
+                ( loginModel, loginCmd ) =
                     Login.update msg model.login
             in
                 ( { model | login = loginModel }, Cmd.map LoginMsg loginCmd )
@@ -112,6 +113,12 @@ view model =
         , main' [ class "mdl-layout__content" ]
             [ div [ class "page-content" ]
                 [ viewContent model ]
+            ]
+        , div [ class "mdl-snackbar mdl-js-snackbar js-elmtv__snackbar" ]
+            [ div [ class "mdl-snackbar__text" ]
+                []
+            , button [ type' "button", class "mdl-snackbar__action" ]
+                []
             ]
         ]
 
