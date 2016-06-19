@@ -11,6 +11,7 @@ import Http
 import Markdown
 import Date exposing (Date)
 import Date.Extra.Core exposing (fromTime)
+import GlobalPorts exposing (scrollPosition, focusElement)
 
 
 -- MODEL
@@ -55,7 +56,7 @@ update msg model =
             ( model, Task.perform ShowError ShowResults (Api.searchShows model.term) )
 
         ShowResults results ->
-            ( { model | results = results }, Cmd.none )
+            ( { model | results = results }, focusElement ".elmtv__search-results .mdl-button:not([disabled]):first-child" )
 
         ShowError error ->
             case error of
@@ -63,10 +64,10 @@ update msg model =
                     ( { model | error = Just err }, Cmd.none )
 
                 _ ->
-                    ( { model | error = Just "Something terrible has happened" }, Cmd.none )
+                    ( { model | error = Just "Sorry, something went wrong during your search. You might be offline." }, Cmd.none )
 
         ShowSearch ->
-            ( { model | visible = True }, Cmd.none )
+            ( { model | visible = True }, Cmd.batch [ scrollPosition 0, focusElement "#searchInput" ] )
 
         HideSearch ->
             ( { model | visible = False }, Cmd.none )
@@ -135,7 +136,7 @@ viewTVShowResult shows result =
 
 
 viewResults results shows =
-    div [ class "elmtv__panel mdl-shadow--2dp" ]
+    div [ class "elmtv__panel mdl-shadow--2dp elmtv__search-results" ]
         ((List.map (viewTVShowResult shows) results)
             |> (List.intersperse (hr [] []))
         )

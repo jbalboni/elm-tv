@@ -59,12 +59,10 @@ update msg model =
 
 viewLoggedIn model =
     nav [ class "mdl-navigation" ]
-        [ img [ src model.picture, class "elmtv__profile-picture" ]
-            []
-        , span [ class "elmtv__profile-email" ]
-            [ text model.email ]
-        , a [ class "mdl-navigation__link", href "#", onClick LogOutUser ]
+        [ a [ class "mdl-navigation__link", href "#", onClick LogOutUser ]
             [ text "Sign out" ]
+        , img [ src model.picture, class "elmtv__profile-picture" ]
+            []
         ]
 
 

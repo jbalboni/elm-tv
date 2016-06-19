@@ -6,7 +6,9 @@ import Html.Attributes exposing (type', class, placeholder, href, style)
 import Html.Events exposing (onClick)
 import Set exposing (Set)
 import Search.Search as Search exposing (Msg(AddShow))
-import Shows.Shows as Shows exposing (Msg(AddToList))
+import ShowList.View as ShowListView
+import ShowList.Types as ShowListTypes exposing (Msg(AddToList))
+import ShowList.State as ShowListState
 import Login.Login as Login
 
 
@@ -14,7 +16,7 @@ import Login.Login as Login
 
 
 type alias Model =
-    { search : Search.Model, shows : Shows.Model, login : Login.Model }
+    { search : Search.Model, shows : ShowListTypes.Model, login : Login.Model }
 
 
 init =
@@ -23,7 +25,7 @@ init =
             Search.init
     in
         ( { search = searchModel
-          , shows = Shows.model
+          , shows = ShowListState.model
           , login = Login.model
           }
         , Cmd.map SearchMsg searchCmd
@@ -36,14 +38,14 @@ init =
 
 type Msg
     = SearchMsg Search.Msg
-    | ShowsMsg Shows.Msg
+    | ShowsMsg ShowListTypes.Msg
     | LoginMsg Login.Msg
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Sub.map ShowsMsg (Shows.subscriptions model.shows)
+        [ Sub.map ShowsMsg (ShowListState.subscriptions model.shows)
         , Sub.map LoginMsg (Login.subscriptions model.login)
         ]
 
@@ -56,7 +58,7 @@ update msg model =
                 AddShow result ->
                     let
                         ( showsModel, showsCmd ) =
-                            Shows.update (AddToList result) model.shows
+                            ShowListState.update (AddToList result) model.shows
 
                         ( searchModel, searchCmd ) =
                             Search.update a model.search
@@ -78,7 +80,7 @@ update msg model =
         ShowsMsg a ->
             let
                 ( showsModel, cmd ) =
-                    Shows.update a model.shows
+                    ShowListState.update a model.shows
             in
                 ( { model | shows = showsModel }, Cmd.map ShowsMsg cmd )
 
@@ -127,6 +129,6 @@ viewContent model =
     div [ class "mdl-grid", style [ ( "max-width", "1200px" ) ] ]
         [ div [ class "mdl-cell mdl-cell--12-col" ]
             [ App.map SearchMsg (Search.view model.search (showDict model.shows))
-            , App.map ShowsMsg (Shows.view model.shows)
+            , App.map ShowsMsg (ShowListView.view model.shows)
             ]
         ]

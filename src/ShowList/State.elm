@@ -1,49 +1,28 @@
-port module Shows.Shows exposing (Model, Msg(AddToList), model, view, update, subscriptions)
+port module ShowList.State exposing (model, update, subscriptions)
 
-import Html exposing (Html, div, hr, text)
-import Html.Attributes exposing (style, class)
-import Api.Types exposing (TVShowResult, TVShowEpisode)
 import Http
-import Html.App as App
-import Show.Show as Show exposing (Msg(UpdateShow, ShowError, SetRev, RemoveShow), ShowRemoval)
-import Date exposing (Date)
-import Date.Extra.Format as Format exposing (utcIsoString)
+import Show.Types as ShowTypes
 import GlobalPorts exposing (showNotification)
-
-
--- Model
-
-
-type alias Model =
-    { list : List Show.Model, error : Maybe String }
-
-
-type alias ShowAndEpisodes =
-    ( Int, List TVShowEpisode )
-
-
-type alias ShowRev =
-    { id : Int, rev : String }
+import ShowList.Types exposing (Model, Msg(..), ShowRev)
+import Show.State as ShowState
+import Show.Types as ShowTypes exposing (Msg(UpdateShow, ShowError, SetRev, RemoveShow))
+import Date.Extra.Format as Format exposing (utcIsoString)
 
 
 model =
     { list = [], error = Nothing }
 
 
-
--- Update
-
-
-port loadShows : (List Show.Show -> msg) -> Sub msg
+port loadShows : (List ShowTypes.Show -> msg) -> Sub msg
 
 
 port loadRev : (ShowRev -> msg) -> Sub msg
 
 
-port removeShow : Show.ShowRemoval -> Cmd msg
+port removeShow : ShowTypes.ShowRemoval -> Cmd msg
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Model -> Sub ShowList.Types.Msg
 subscriptions model =
     Sub.batch
         [ loadShows LoadShows
@@ -51,21 +30,14 @@ subscriptions model =
         ]
 
 
-type Msg
-    = AddToList ( Date, TVShowResult )
-    | LoadShows (List Show.Show)
-    | ShowMsg Int Show.Msg
-    | LoadRev ShowRev
-
-
-updateHelp : Int -> Show.Msg -> Show.Model -> ( Show.Model, Cmd Msg )
+updateHelp : Int -> ShowTypes.Msg -> ShowTypes.Model -> ( ShowTypes.Model, Cmd ShowList.Types.Msg )
 updateHelp id msg show =
     if show.show.id /= id then
         ( show, Cmd.none )
     else
         let
             ( newShow, cmds ) =
-                Show.update msg show
+                ShowState.update msg show
         in
             ( newShow
             , Cmd.map (ShowMsg id) cmds
@@ -75,17 +47,17 @@ updateHelp id msg show =
 updateAll show =
     let
         ( defaultShowModel, initCmd ) =
-            Show.model
+            ShowState.init
 
         ( newShow, cmd ) =
-            Show.update UpdateShow { defaultShowModel | show = show }
+            ShowState.update UpdateShow { defaultShowModel | show = show }
     in
         ( newShow
         , Cmd.batch [ Cmd.map (ShowMsg show.id) initCmd, Cmd.map (ShowMsg show.id) cmd ]
         )
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : ShowList.Types.Msg -> Model -> ( Model, Cmd ShowList.Types.Msg )
 update msg model =
     case msg of
         ShowMsg id subMsg ->
@@ -103,7 +75,7 @@ update msg model =
                             ( { model | error = Just err }, Cmd.none )
 
                         _ ->
-                            ( { model | error = Just "Something terrible has happened" }, Cmd.none )
+                            ( { model | error = Just "Sorry, something went wrong during your search. You might be offline." }, Cmd.none )
 
                 _ ->
                     let
@@ -125,7 +97,7 @@ update msg model =
                             Just image.medium
 
                 ( defaultShowModel, initialCmd ) =
-                    Show.model
+                    ShowState.init
 
                 defaultShow =
                     defaultShowModel.show
@@ -134,7 +106,7 @@ update msg model =
                     { defaultShow | id = result.show.id, name = result.show.name, image = (getImage result.show), added = utcIsoString today }
 
                 ( newShow, cmds ) =
-                    Show.update UpdateShow { defaultShowModel | show = updatedShow }
+                    ShowState.update UpdateShow { defaultShowModel | show = updatedShow }
 
                 newList =
                     newShow :: model.list
@@ -154,20 +126,3 @@ update msg model =
                     List.unzip (List.map (updateHelp rev.id (SetRev rev.rev)) model.list)
             in
                 ( { model | list = newShows }, Cmd.batch cmds )
-
-
-
--- View
-
-
-view : Model -> Html Msg
-view model =
-    case model.list of
-        [] ->
-            div [] []
-
-        xs ->
-            div [ class "elmtv__panel mdl-shadow--2dp" ]
-                ((List.map (\show -> App.map (ShowMsg show.show.id) (Show.view show)) xs)
-                    |> (List.intersperse (hr [] []))
-                )

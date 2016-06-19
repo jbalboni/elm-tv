@@ -47,6 +47,16 @@ app.ports.showNotification.subscribe(function(message) {
     });
 });
 
+app.ports.scrollPosition.subscribe(function scrollPosition(position) {
+    document.body.scrollTop = position;
+});
+
+app.ports.focusElement.subscribe(function scrollPosition(focusSelector) {
+    setTimeout(function() {
+        document.querySelector(focusSelector).focus();
+    }, 40);
+});
+
 app.ports.logInUser.subscribe(function(login) {
     serverSync.logInUser();
 });

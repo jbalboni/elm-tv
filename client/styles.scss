@@ -102,7 +102,7 @@ body {
         font-size: 20px;
         line-height: 26px;
     }
-    .mdl-button:not(.mdl-button--fab) {
+    .mdl-button:not(.mdl-button--fab):not(.mdl-button--icon) {
         height: 32px;
         line-height: 32px;
         font-size: 12px;
