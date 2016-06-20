@@ -50,7 +50,12 @@ view { today, show, visibleSeasons, seasonsListVisible } =
             [ button
                 [ onClick
                     (RemoveShow { id = show.id, rev = show.rev, name = show.name })
-                , class "mdl-button mdl-js-button mdl-button--icon mdl-button--accent elmtv__remove-show"
+                , class """
+                    mdl-button
+                    mdl-js-button
+                    mdl-button--icon
+                    mdl-button--accent
+                    elmtv__remove-show"""
                 ]
                 [ span [ class "material-icons" ]
                     [ text "delete" ]
@@ -58,7 +63,7 @@ view { today, show, visibleSeasons, seasonsListVisible } =
             , div [ class "elmtv__show-content" ]
                 [ img [ class "elmtv__show-image", src (getImage show.image) ]
                     []
-                , div [ style [ ( "padding-left", "15px" ), ( "flex", "1" ) ] ]
+                , div [ class "elmtv__show-desc" ]
                     [ div [ class "elmtv__show-headline" ]
                         [ text show.name ]
                     , div [ class "mdl-typography--title" ]

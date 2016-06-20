@@ -86,6 +86,23 @@ body {
     text-align: right;
 }
 
+.elmtv__search-result {
+    display: flex;
+    overflow: auto;
+    min-height: 100px;
+    margin-bottom: 16px;
+}
+
+.elmtv__show-desc {
+    padding-left: 16px;
+    flex: 1;
+}
+
+.elmtv__search-content {
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
 @media screen and ( max-width: 600px ) {
     .elmtv__profile-picture {
         margin-right: 16px;
