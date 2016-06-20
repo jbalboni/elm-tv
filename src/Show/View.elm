@@ -8,6 +8,7 @@ import Markdown
 import Date exposing (Date)
 import Date.Extra.Compare as Compare exposing (is, Compare2(..))
 import Show.Types exposing (Msg(..), Model)
+import Regex exposing (regex)
 
 
 view : Model -> Html Msg
@@ -28,7 +29,11 @@ view { today, show, visibleSeasons, seasonsListVisible } =
                     numEpisodes
 
                 _ ->
-                    List.length (List.filter (\episode -> not (episodeWatched show.lastEpisodeWatched episode)) episodes)
+                    List.length
+                        (List.filter
+                            (\episode ->
+                                not (episodeWatched show.lastEpisodeWatched episode))
+                        episodes)
 
         unwatchedEpisodesDesc =
             case unwatchedEpisodes of
@@ -41,16 +46,20 @@ view { today, show, visibleSeasons, seasonsListVisible } =
                 _ ->
                     (toString unwatchedEpisodes) ++ " episodes to watch"
     in
-        div []
-            [ button [ onClick (RemoveShow { id = show.id, rev = show.rev, name = show.name }), class "mdl-button mdl-js-button mdl-button--icon mdl-button--accent elmtv__remove-show" ]
+        div [ class "elmtv__show" ]
+            [ button
+                [ onClick
+                    (RemoveShow { id = show.id, rev = show.rev, name = show.name })
+                , class "mdl-button mdl-js-button mdl-button--icon mdl-button--accent elmtv__remove-show"
+                ]
                 [ span [ class "material-icons" ]
                     [ text "delete" ]
                 ]
-            , div [ style [ ( "display", "flex" ), ( "overflow", "visible" ), ( "min-height", "100px" ), ( "margin-bottom", "15px" ) ] ]
-                [ img [ class "c-show-ShowImage", src (Maybe.withDefault "http://lorempixel.com/72/100/abstract" show.image) ]
+            , div [ class "elmtv__show-content" ]
+                [ img [ class "elmtv__show-image", src (getImage show.image) ]
                     []
                 , div [ style [ ( "padding-left", "15px" ), ( "flex", "1" ) ] ]
-                    [ div [ class "mdl-typography--headline" ]
+                    [ div [ class "elmtv__show-headline" ]
                         [ text show.name ]
                     , div [ class "mdl-typography--title" ]
                         [ text
@@ -60,28 +69,55 @@ view { today, show, visibleSeasons, seasonsListVisible } =
                                 ""
                             )
                         ]
+                    , button
+                        [ onClick (ToggleSeasons (not seasonsListVisible))
+                        , class """
+                            mdl-button
+                            mdl-js-button
+                            mdl-button--raised
+                            mdl-js-ripple-effect
+                            mdl-button--colored
+                            elmtv__button--spacing"""
+                        ]
+                        [ text
+                            (if seasonsListVisible then
+                                "Hide seasons"
+                             else
+                                "Show seasons"
+                            )
+                        ]
+                    , (if unwatchedEpisodes /= 0 then
+                        button
+                            [ onClick MarkAllEpisodesWatched
+                            , class """
+                                mdl-button
+                                mdl-js-button
+                                mdl-button--raised
+                                mdl-js-ripple-effect
+                                mdl-button--accent
+                                elmtv__button--spacing"""
+                            ]
+                            [ text "I'm caught up" ]
+                       else
+                        div [] []
+                      )
                     ]
                 ]
-            , button [ onClick (ToggleSeasons (not seasonsListVisible)), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
-                [ text
-                    (if seasonsListVisible then
-                        "Hide seasons"
-                     else
-                        "Show seasons"
-                    )
-                ]
-            , (if unwatchedEpisodes /= 0 then
-                button [ class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent elmtv__button--spacing", onClick MarkAllEpisodesWatched ]
-                    [ text "I'm caught up" ]
-               else
-                div [] []
-              )
             , (if seasonsListVisible == True then
                 viewSeasons show.lastEpisodeWatched seasons visibleSeasons
                else
                 div [] []
               )
             ]
+
+
+getImage image =
+    case image of
+        Nothing ->
+            "http://lorempixel.com/72/100/abstract"
+
+        Just img ->
+            Regex.replace Regex.All (regex "http") (\_ -> "https") img
 
 
 episodeWatched ( watchedSeason, watchedEpisode ) episode =
@@ -108,8 +144,18 @@ viewEpisode lastEpisodeWatched episode =
             [ text ("Episode " ++ (toString episode.number) ++ " - " ++ episode.name) ]
         , div [ class "elmtv__episode-desc" ]
             [ (Markdown.toHtml [] episode.summary) ]
-        , div [ style [ ( "display", "flex" ), ( "justify-content", "flex-end" ) ] ]
-            [ button [ onClick (MarkEpisodeWatched ( episode.season, episode.number )), disabled (episodeWatched lastEpisodeWatched episode), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
+        , div [ class "elmtv__episode-watched" ]
+            [ button
+                [ onClick (MarkEpisodeWatched ( episode.season, episode.number ))
+                , disabled (episodeWatched lastEpisodeWatched episode)
+                , class """
+                    mdl-button
+                    mdl-js-button
+                    mdl-button--raised
+                    mdl-js-ripple-effect
+                    mdl-button--colored
+                    elmtv__button--spacing"""
+                ]
                 [ text "I watched this" ]
             ]
         ]
@@ -136,21 +182,39 @@ viewSeason lastEpisodeWatched visibleSeasons season =
                     visible
     in
         div []
-            [ div [ style [ ( "display", "flex" ), ( "justify-content", "space-between" ), ( "flex-wrap", "wrap" ) ] ]
-                [ div [ class "mdl-typography--headline", style [ ( "line-height", "43px" ), ( "width", "50%" ) ] ]
+            [ div [ class "elmtv__season-content" ]
+                [ div [ class "elmtv__season-title" ]
                     [ text ("Season " ++ (toString season.number)) ]
                 , div []
                     [ div []
                         [ (if (hasSeasonBeenWatched lastEpisodeWatched season) == True then
                             div [] []
                            else
-                            (button [ onClick (MarkSeasonWatched season.number), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored elmtv__button--spacing" ]
+                            (button
+                                [ onClick (MarkSeasonWatched season.number)
+                                , class """
+                                    mdl-button
+                                    mdl-js-button
+                                    mdl-button--raised
+                                    mdl-js-ripple-effect
+                                    mdl-button--colored
+                                    elmtv__button--spacing"""
+                                ]
                                 [ text "I watched this" ]
                             )
                           )
                         ]
-                    , div [ style [ ( "text-align", "right" ) ] ]
-                        [ button [ onClick (ToggleSeason season.number (not isVisible)), class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent elmtv__button--spacing" ]
+                    , div [ class "elmtv__episodes-toggle" ]
+                        [ button
+                            [ onClick (ToggleSeason season.number (not isVisible))
+                            , class """
+                                mdl-button
+                                mdl-js-button
+                                mdl-button--raised
+                                mdl-js-ripple-effect
+                                mdl-button--accent
+                                elmtv__button--spacing"""
+                            ]
                             [ text
                                 (if isVisible then
                                     "Hide episodes"
@@ -184,5 +248,6 @@ episodeAired today episode =
 
 airedSeasons today seasons =
     seasons
-        |> List.map (\season -> { season | episodes = (List.filter (episodeAired today) season.episodes) })
+        |> List.map (\season -> { season | episodes =
+            (List.filter (episodeAired today) season.episodes) })
         |> List.filter (\season -> season.episodes /= [])

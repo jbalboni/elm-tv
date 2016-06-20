@@ -15,7 +15,7 @@ view model =
             div [] []
 
         xs ->
-            div [ class "elmtv__panel mdl-shadow--2dp" ]
+            div [ class "elmtv__panel" ]
                 ((List.map (\show -> App.map (ShowMsg show.show.id) (lazy ShowView.view show)) xs)
                     |> (List.intersperse (hr [] []))
                 )

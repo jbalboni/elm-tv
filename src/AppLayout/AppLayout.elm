@@ -113,7 +113,7 @@ view model =
                 ]
             ]
         , main' [ class "mdl-layout__content" ]
-            [ div [ class "page-content" ]
+            [ div [ class "page-content elmtv__main-content" ]
                 [ viewContent model ]
             ]
         , div [ class "mdl-snackbar mdl-js-snackbar js-elmtv__snackbar" ]
@@ -126,7 +126,7 @@ view model =
 
 
 viewContent model =
-    div [ class "mdl-grid", style [ ( "max-width", "1200px" ) ] ]
+    div [ class "mdl-grid" ]
         [ div [ class "mdl-cell mdl-cell--12-col" ]
             [ App.map SearchMsg (Search.view model.search (showDict model.shows))
             , App.map ShowsMsg (ShowListView.view model.shows)

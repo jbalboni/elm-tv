@@ -173,7 +173,7 @@ expandedView model shows =
 
 
 collapsedView model =
-    div [ class "c-search-SearchCollapsed" ]
+    div [ class "elmtv__search--collapsed" ]
         [ div [ style [ ( "float", "right" ) ] ]
             [ button [ class "mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored", onClick ShowSearch ]
                 [ span [ class "material-icons" ]

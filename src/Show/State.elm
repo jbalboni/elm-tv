@@ -9,6 +9,7 @@ import Api.Api as Api
 import List.Extra exposing (groupWhile)
 import Api.Types exposing (TVShowEpisode)
 import Show.Types exposing (Msg(..), Model, Show)
+import GlobalPorts exposing (showNotification)
 
 
 init : ( Model, Cmd Msg )
@@ -51,7 +52,9 @@ addEpisodesToShows shows episodesForShows =
         showEpisodes =
             Dict.fromList episodesForShows
     in
-        List.map (\show -> { show | episodes = Maybe.withDefault [] (Dict.get show.id showEpisodes) }) shows
+        List.map
+            (\show -> { show | episodes = Maybe.withDefault [] (Dict.get show.id showEpisodes) }) 
+            shows
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -130,7 +133,12 @@ updateShow msg model =
                 updatedShow =
                     { model | lastEpisodeWatched = latestEpisode }
             in
-                ( updatedShow, persistShow updatedShow )
+                ( updatedShow
+                , Cmd.batch
+                    [ persistShow updatedShow
+                    , showNotification ("Caught up on " ++ model.name)
+                    ]
+                )
 
         UpdateEpisodes episodes ->
             let

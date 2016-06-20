@@ -1,0 +1,45 @@
+@import "../../node_modules/material-design-lite/src/_color-definitions";
+$color-primary: $palette-teal-500;
+$color-primary-dark: $palette-teal-700;
+$color-accent: $palette-pink-A200;
+
+// Our primary is dark, so use $color-dark-contrast for overlaid text.
+$color-primary-contrast: $color-dark-contrast;
+// Our accent is dark, so use $color-dark-contrast for overlaid text.
+$color-accent-contrast: $color-dark-contrast;
+
+// Variables and mixins
+@import "../../node_modules/material-design-lite/src/variables";
+@import "../../node_modules/material-design-lite/src/mixins";
+
+// Resets and dependencies
+@import "../../node_modules/material-design-lite/src/resets/resets";
+@import "../../node_modules/material-design-lite/src/typography/typography";
+
+// Components
+@import "../../node_modules/material-design-lite/src/palette/palette";
+@import "../../node_modules/material-design-lite/src/ripple/ripple";
+@import "../../node_modules/material-design-lite/src/animation/animation";
+//@import "badge/badge";
+@import "../../node_modules/material-design-lite/src/button/button";
+//@import "card/card";
+//@import "checkbox/checkbox";
+//@import "data-table/data-table";
+//@import "dialog/dialog";
+//@import "footer/mega_footer";
+//@import "footer/mini_footer";
+//@import "icon-toggle/icon-toggle";
+//@import "list/list";
+//@import "menu/menu";
+//@import "progress/progress";
+@import "../../node_modules/material-design-lite/src/layout/layout";
+//@import "radio/radio";
+//@import "slider/slider";
+@import "../../node_modules/material-design-lite/src/snackbar/snackbar";
+@import "../../node_modules/material-design-lite/src/spinner/spinner";
+//@import "switch/switch";
+//@import "tabs/tabs";
+@import "../../node_modules/material-design-lite/src/textfield/textfield";
+//@import "tooltip/tooltip";
+@import "../../node_modules/material-design-lite/src/shadow/shadow";
+@import "../../node_modules/material-design-lite/src/grid/grid";

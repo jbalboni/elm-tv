@@ -1,0 +1,148 @@
+@import "mdl.scss";
+
+body {
+    font-family: Roboto, "Helvetica Neue", Helvetica, Arial;
+    background-color: #f4f4f4;
+}
+
+.elmtv__header--no-drawer {
+    padding-left: 64px;
+}
+
+@media screen and ( max-width: 1024px ) {
+    .elmtv__header--no-drawer {
+        padding-left: 16px;
+        padding-right: 0;
+    }
+}
+
+.elmtv__button--spacing {
+    margin: 8px 8px 8px 0;
+}
+
+.elmtv__panel {
+    padding: 16px;
+    margin: 16px 0;
+    background-color: white;
+    @extend .mdl-shadow--2dp;
+}
+
+.elmtv__episode-desc {
+    margin-top: 8px;
+}
+
+.elmtv__profile-picture {
+    width: 30px;
+    height: 30px;
+    border-radius: 30px;
+    margin-right: 24px;
+}
+
+.elmtv__remove-show {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.elmtv__show-headline {
+    @extend .mdl-typography--headline;
+    margin-right: 32px;
+}
+
+.elmtv__show-content {
+    display: flex;
+    overflow: visible;
+    min-height: 100px;
+    margin-bottom: 15px;
+}
+
+.elmtv__main-content {
+    max-width: 1024px;
+    margin: 0 auto 78px;
+}
+
+.elmtv__show {
+    position: relative;
+}
+
+.elmtv__episode-watched {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.elmtv__season-content {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.elmtv__season-title {
+    line-height: 43px;
+    width: 50%;
+    @extend .mdl-typography--headline;
+}
+
+.elmtv__episodes-toggle {
+    text-align: right;
+}
+
+@media screen and ( max-width: 600px ) {
+    .elmtv__profile-picture {
+        margin-right: 16px;
+    }
+    .elmtv__profile-email {
+        display: none;
+    }
+}
+
+@media screen and ( max-width: 1024px ) {
+    .mdl-typography--title {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .mdl-typography--headline {
+        font-size: 20px;
+        line-height: 26px;
+    }
+    .mdl-button:not(.mdl-button--fab):not(.mdl-button--icon) {
+        height: 32px;
+        line-height: 32px;
+        font-size: 12px;
+        min-width: 60px;
+    }
+}
+
+.elmtv__show-image {
+    height: 200px;
+}
+
+.c-show-Button {
+    margin-right: 8px;
+}
+
+@media screen and ( max-width: 405px ) {
+    .elmtv__show-image {
+        height: 50px;
+    }
+}
+
+@media screen and ( max-width: 600px ) and ( min-width: 406px ) {
+    .elmtv__show-image {
+        height: 100px;
+    }
+}
+
+@media screen and ( max-width: 342px ) {
+        .c-show-Button {
+    margin-right: 8px;
+}
+}
+
+.elmtv__search--collapsed {
+    padding-bottom: 0px;
+    margin-top: 0px;
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 2;
+}

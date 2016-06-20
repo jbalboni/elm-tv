@@ -83,7 +83,7 @@ function parse(e){for(var t,r=[],n=0,o=0,a="";null!=(t=PATH_REGEXP.exec(e));){va
 
 
 /* eslint-disable quotes, comma-spacing */
-var PrecacheConfig = [["dist/bundle.js","33bd15992af5dc4296aa4ddd0f74c140"],["dist/index.html","ee47f693e0a0351dee246a71cc82c612"],["dist/material.min.js","d8f93ed01ebd59371f8095ad84eaf05e"],["dist/styles.css","f094d8567588595ee22a3460dfe51ca8"],["dist/sw-toolbox.js","66531e5962e4dccb0526a2b4cd6364a4"]];
+var PrecacheConfig = [["dist/bundle.js","bfa9a8b2760040abd6f5974ee657a09e"],["dist/index.html","c7689f9b07f0dcfd4bc8d8b849ee9905"],["dist/main.css","40c08b098d45dce5cd6fa0c6ad9b1b10"],["dist/material.min.js","d8f93ed01ebd59371f8095ad84eaf05e"],["dist/sw-toolbox.js","66531e5962e4dccb0526a2b4cd6364a4"]];
 /* eslint-enable quotes, comma-spacing */
 var CacheNamePrefix = 'sw-precache-v1--' + (self.registration ? self.registration.scope : '') + '-';
 
