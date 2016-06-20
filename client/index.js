@@ -21,6 +21,8 @@ store = createStore(db);
 
 upgradeMDL();
 
+document.getElementById('elm').innerHTML = '';
+
 app = Elm.Main.embed(document.getElementById('elm'));
 
 app.ports.persistShow.subscribe(function(show) {
@@ -52,6 +54,7 @@ app.ports.scrollPosition.subscribe(function scrollPosition(position) {
 });
 
 app.ports.focusElement.subscribe(function scrollPosition(focusSelector) {
+    //gross, need to fix this
     setTimeout(function() {
         document.querySelector(focusSelector).focus();
     }, 40);

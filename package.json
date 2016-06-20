@@ -39,7 +39,7 @@
   },
   "scripts": {
     "styles": "gulp css",
-    "prod": "webpack --config webpack.prod.config.js && gulp css && cp client/index.html dist/index.html && gulp service-worker",
+    "prod": "webpack --config webpack.prod.config.js && gulp css && cp client/index.html dist/index.html && cp client/assets/* dist/ && gulp service-worker",
     "start-prod": "cross-env NODE_ENV=production \"node server.js\"",
     "start": "node server.js"
   },

@@ -1,0 +1,14 @@
+{
+  "background_color": "#F4F4F4",
+  "theme_color": "#009688",
+  "name": "Elm TV",
+  "short_name": "Elm TV",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "dist/icon_144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    }
+  ]
+}

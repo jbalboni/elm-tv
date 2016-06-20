@@ -10,6 +10,7 @@ function upgradeMDLComponent(summaries) {
     });
 }
 
+//This is probably not very efficient, but it's easier than using elm-mdl
 module.exports = function upgradeMDL() {
     var observer = new MutationSummary({
       callback: upgradeMDLComponent,
