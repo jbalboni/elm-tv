@@ -16,9 +16,11 @@ import Login.Login as Login
 
 -- MODEL
 
-type Tab =
-    EpisodesToWatch
+
+type Tab
+    = EpisodesToWatch
     | AllShows
+
 
 type alias Model =
     { search : SearchTypes.Model, shows : ShowListTypes.Model, login : Login.Model, activeTab : Tab }
@@ -39,6 +41,7 @@ init =
           }
         , Cmd.batch [ Cmd.map SearchMsg searchCmd, Cmd.map ShowsMsg showListCmd ]
         )
+
 
 
 -- UPDATE
@@ -64,7 +67,7 @@ update msg model =
     case msg of
         ChangeTab tab ->
             let
-                (updatedShowModel, _) =
+                ( updatedShowModel, _ ) =
                     ShowListState.update (ToggleShowUnwatchedOnly (tab == EpisodesToWatch)) model.shows
 
                 updatedModel =
@@ -134,9 +137,9 @@ view model =
         , main' [ class "mdl-layout__content" ]
             [ div [ class "mdl-tabs is-upgraded mdl-js-tabs mdl-js-ripple-effect" ]
                 [ div [ class "mdl-tabs__tab-bar" ]
-                    [ a [ classList [ ("mdl-tabs__tab", True), ("is-active", model.activeTab == EpisodesToWatch) ],  href "#", onClick (ChangeTab EpisodesToWatch) ]
+                    [ a [ classList [ ( "mdl-tabs__tab", True ), ( "is-active", model.activeTab == EpisodesToWatch ) ], href "#", onClick (ChangeTab EpisodesToWatch) ]
                         [ text "Episodes to watch" ]
-                    , a [ classList [ ("mdl-tabs__tab", True), ("is-active", model.activeTab == AllShows) ], href "#", onClick (ChangeTab AllShows) ]
+                    , a [ classList [ ( "mdl-tabs__tab", True ), ( "is-active", model.activeTab == AllShows ) ], href "#", onClick (ChangeTab AllShows) ]
                         [ text "All shows" ]
                     ]
                 ]

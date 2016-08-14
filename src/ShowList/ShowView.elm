@@ -32,8 +32,10 @@ view today { show, visibleSeasons, seasonsListVisible } =
                     List.length
                         (List.filter
                             (\episode ->
-                                not (episodeWatched show.lastEpisodeWatched episode))
-                        episodes)
+                                not (episodeWatched show.lastEpisodeWatched episode)
+                            )
+                            episodes
+                        )
 
         unwatchedEpisodesDesc =
             case unwatchedEpisodes of
@@ -253,6 +255,11 @@ episodeAired today episode =
 
 airedSeasons today seasons =
     seasons
-        |> List.map (\season -> { season | episodes =
-            (List.filter (episodeAired today) season.episodes) })
+        |> List.map
+            (\season ->
+                { season
+                    | episodes =
+                        (List.filter (episodeAired today) season.episodes)
+                }
+            )
         |> List.filter (\season -> season.episodes /= [])

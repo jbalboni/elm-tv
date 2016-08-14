@@ -16,19 +16,21 @@ import GlobalPorts exposing (showNotification)
 init showOnlyShowsWithUnwatched =
     ( { list = [], error = Nothing, showOnlyShowsWithUnwatched = showOnlyShowsWithUnwatched, today = Date.fromTime 0 }, Task.perform ShowTimeError SetTodaysDate Date.now )
 
+
 showInit =
     { seasonsListVisible = False
     , visibleSeasons = Dict.empty
     , show =
-          { id = 0
-          , name = ""
-          , lastEpisodeWatched = ( 0, 0 )
-          , image = Nothing
-          , seasons = []
-          , rev = ""
-          , added = Date.fromTime 0 |> utcIsoString
-          }
+        { id = 0
+        , name = ""
+        , lastEpisodeWatched = ( 0, 0 )
+        , image = Nothing
+        , seasons = []
+        , rev = ""
+        , added = Date.fromTime 0 |> utcIsoString
+        }
     }
+
 
 port loadShows : (List ShowList.Types.Show -> msg) -> Sub msg
 
@@ -73,11 +75,14 @@ addEpisodesToShows shows episodesForShows =
             shows
 
 
-updateShowInList : List ShowModel -> Int -> (ShowModel -> ShowModel) -> (ShowModel -> Cmd a) ->  (List ShowModel, Cmd a)
+updateShowInList : List ShowModel -> Int -> (ShowModel -> ShowModel) -> (ShowModel -> Cmd a) -> ( List ShowModel, Cmd a )
 updateShowInList shows id updateShow getCmd =
     let
         chooseUpdater showModel =
-            if showModel.show.id == id then (updateShow showModel) else showModel
+            if showModel.show.id == id then
+                (updateShow showModel)
+            else
+                showModel
 
         updatedList =
             List.map chooseUpdater shows
@@ -92,9 +97,8 @@ updateShowInList shows id updateShow getCmd =
 
                 Just show ->
                     getCmd show
-
     in
-        (updatedList, cmd)
+        ( updatedList, cmd )
 
 
 updateShowData update showModel =
@@ -143,13 +147,13 @@ update msg model =
 
                 newShow =
                     { showInit | show = updatedShow }
-
             in
                 ( { model | list = newShow :: model.list }
                 , Cmd.batch
                     [ Task.perform ShowError (UpdateEpisodes updatedShow.id) (fetchShow updatedShow.id)
                     , showNotification ("Added " ++ updatedShow.name)
-                    ] )
+                    ]
+                )
 
         LoadShows shows ->
             let
@@ -245,7 +249,6 @@ update msg model =
 
                                         episode :: _ ->
                                             ( season.number, episode.number )
-
                     in
                         { show | lastEpisodeWatched = latestEpisode }
 
@@ -283,7 +286,6 @@ update msg model =
                                         , number = (getSeason episodes)
                                         }
                                     )
-
                     in
                         { show | seasons = seasons }
 
@@ -293,10 +295,10 @@ update msg model =
                 ( updatedList, cmd ) =
                     updateShowInList model.list id (updateShowData updateShow) getPersistCmd
 
-                _ = Debug.log "Episodes" updatedList
+                _ =
+                    Debug.log "Episodes" updatedList
             in
                 ( { model | list = updatedList }, cmd )
-
 
         UpdateShow id ->
             ( model, Task.perform ShowError (UpdateEpisodes id) (fetchShow id) )

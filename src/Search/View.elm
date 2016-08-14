@@ -5,8 +5,8 @@ import Html exposing (Html, button, div, text, input, label, span, img, hr, form
 import Html.Attributes exposing (type', class, placeholder, style, src, disabled, id, for)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Markdown
-
 import Search.Types exposing (Model, Msg(..))
+
 
 view : Model -> Set Int -> Html Msg
 view model shows =
@@ -73,7 +73,8 @@ viewTVShowResult shows result =
                             mdl-button--raised
                             mdl-js-ripple-effect
                             mdl-button--colored"""
-                        , disabled True ]
+                        , disabled True
+                        ]
                         [ text "Already added" ]
               )
             ]

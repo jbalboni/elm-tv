@@ -29,11 +29,13 @@ view model =
                         |> (List.intersperse (hr [] []))
                     )
 
+
 hasUnwatchedEpisode { lastEpisodeWatched, seasons } =
     List.concat (List.map (\season -> season.episodes) seasons)
-    |> List.head
-    |> (episodeWatched lastEpisodeWatched)
-    |> not
+        |> List.head
+        |> (episodeWatched lastEpisodeWatched)
+        |> not
+
 
 episodeWatched ( watchedSeason, watchedEpisode ) episode =
     case episode of
