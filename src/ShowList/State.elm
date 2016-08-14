@@ -1,90 +1,129 @@
-port module ShowList.State exposing (model, update, subscriptions)
+port module ShowList.State exposing (init, update, subscriptions)
 
 import Http
-import Show.Types as ShowTypes
 import GlobalPorts exposing (showNotification)
-import ShowList.Types exposing (Model, Msg(..), ShowRev)
-import Show.State as ShowState
-import Show.Types as ShowTypes exposing (Msg(UpdateShow, ShowError, SetRev, RemoveShow))
+import ShowList.Types exposing (Model, Msg(..), ShowRev, ShowModel, Show, ShowRemoval)
 import Date.Extra.Format as Format exposing (utcIsoString)
+import Task
+import Dict
+import Date exposing (Date)
+import Api.Api as Api
+import List.Extra exposing (groupWhile)
+import Api.Types exposing (TVShowEpisode)
+import GlobalPorts exposing (showNotification)
 
 
-model =
-    { list = [], error = Nothing }
+init showOnlyShowsWithUnwatched =
+    ( { list = [], error = Nothing, showOnlyShowsWithUnwatched = showOnlyShowsWithUnwatched, today = Date.fromTime 0 }, Task.perform ShowTimeError SetTodaysDate Date.now )
 
+showInit =
+    { seasonsListVisible = False
+    , visibleSeasons = Dict.empty
+    , show =
+          { id = 0
+          , name = ""
+          , lastEpisodeWatched = ( 0, 0 )
+          , image = Nothing
+          , seasons = []
+          , rev = ""
+          , added = Date.fromTime 0 |> utcIsoString
+          }
+    }
 
-port loadShows : (List ShowTypes.Show -> msg) -> Sub msg
+port loadShows : (List ShowList.Types.Show -> msg) -> Sub msg
 
 
 port loadRev : (ShowRev -> msg) -> Sub msg
 
 
-port removeShow : ShowTypes.ShowRemoval -> Cmd msg
+port removeShow : ShowList.Types.ShowRemoval -> Cmd msg
 
 
-subscriptions : Model -> Sub ShowList.Types.Msg
+port persistShow : Show -> Cmd msg
+
+
+subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ loadShows LoadShows
-        , loadRev LoadRev
+        , loadRev SetRev
         ]
 
 
-updateHelp : Int -> ShowTypes.Msg -> ShowTypes.Model -> ( ShowTypes.Model, Cmd ShowList.Types.Msg )
-updateHelp id msg show =
-    if show.show.id /= id then
-        ( show, Cmd.none )
-    else
-        let
-            ( newShow, cmds ) =
-                ShowState.update msg show
-        in
-            ( newShow
-            , Cmd.map (ShowMsg id) cmds
-            )
+fetchShow id =
+    (Api.getEpisodes id)
 
 
-updateAll show =
+getSeason episodes =
+    case episodes of
+        [] ->
+            0
+
+        first :: _ ->
+            first.season
+
+
+addEpisodesToShows shows episodesForShows =
     let
-        ( defaultShowModel, initCmd ) =
-            ShowState.init
-
-        ( newShow, cmd ) =
-            ShowState.update UpdateShow { defaultShowModel | show = show }
+        showEpisodes =
+            Dict.fromList episodesForShows
     in
-        ( newShow
-        , Cmd.batch [ Cmd.map (ShowMsg show.id) initCmd, Cmd.map (ShowMsg show.id) cmd ]
-        )
+        List.map
+            (\show -> { show | episodes = Maybe.withDefault [] (Dict.get show.id showEpisodes) })
+            shows
+
+
+updateShowInList : List ShowModel -> Int -> (ShowModel -> ShowModel) -> (ShowModel -> Cmd a) ->  (List ShowModel, Cmd a)
+updateShowInList shows id updateShow getCmd =
+    let
+        chooseUpdater showModel =
+            if showModel.show.id == id then (updateShow showModel) else showModel
+
+        updatedList =
+            List.map chooseUpdater shows
+
+        updatedShow =
+            List.Extra.find (\showModel -> showModel.show.id == id) updatedList
+
+        cmd =
+            case updatedShow of
+                Nothing ->
+                    Cmd.none
+
+                Just show ->
+                    getCmd show
+
+    in
+        (updatedList, cmd)
+
+
+updateShowData update showModel =
+    { showModel | show = (update showModel.show) }
 
 
 update : ShowList.Types.Msg -> Model -> ( Model, Cmd ShowList.Types.Msg )
 update msg model =
     case msg of
-        ShowMsg id subMsg ->
-            case subMsg of
-                RemoveShow removal ->
-                    let
-                        listWithoutShow =
-                            List.filter (\show -> removal.id /= show.show.id) model.list
-                    in
-                        ( { model | list = listWithoutShow }, Cmd.batch [ removeShow removal, showNotification ("Removed " ++ removal.name) ] )
+        SetTodaysDate date ->
+            ( { model | today = date }, Cmd.none )
 
-                ShowError error ->
-                    case error of
-                        Http.UnexpectedPayload err ->
-                            ( { model | error = Just err }, Cmd.none )
+        RemoveShow removal ->
+            let
+                listWithoutShow =
+                    List.filter (\show -> removal.id /= show.show.id) model.list
+            in
+                ( { model | list = listWithoutShow }, Cmd.batch [ removeShow removal, showNotification ("Removed " ++ removal.name) ] )
 
-                        _ ->
-                            ( { model | error = Just "Sorry, something went wrong during your search. You might be offline." }, Cmd.none )
+        ShowError error ->
+            case error of
+                Http.UnexpectedPayload err ->
+                    ( { model | error = Just err }, Cmd.none )
 
                 _ ->
-                    let
-                        ( newShows, cmds ) =
-                            List.unzip (List.map (updateHelp id subMsg) model.list)
-                    in
-                        ( { model | list = newShows }
-                        , Cmd.batch cmds
-                        )
+                    ( { model | error = Just "Sorry, something went wrong during your search. You might be offline." }, Cmd.none )
+
+        ShowTimeError error ->
+            ( { model | error = Just error }, Cmd.none )
 
         AddToList ( today, result ) ->
             let
@@ -96,33 +135,178 @@ update msg model =
                         Just image ->
                             Just image.medium
 
-                ( defaultShowModel, initialCmd ) =
-                    ShowState.init
-
                 defaultShow =
-                    defaultShowModel.show
+                    showInit.show
 
                 updatedShow =
                     { defaultShow | id = result.show.id, name = result.show.name, image = (getImage result.show), added = utcIsoString today }
 
-                ( newShow, cmds ) =
-                    ShowState.update UpdateShow { defaultShowModel | show = updatedShow }
+                newShow =
+                    { showInit | show = updatedShow }
 
-                newList =
-                    newShow :: model.list
             in
-                ( { model | list = newList }, Cmd.batch [ Cmd.map (ShowMsg newShow.show.id) initialCmd, Cmd.map (ShowMsg newShow.show.id) cmds, showNotification ("Added " ++ updatedShow.name) ] )
+                ( { model | list = newShow :: model.list }
+                , Cmd.batch
+                    [ Task.perform ShowError (UpdateEpisodes updatedShow.id) (fetchShow updatedShow.id)
+                    , showNotification ("Added " ++ updatedShow.name)
+                    ] )
 
         LoadShows shows ->
             let
-                ( updatedShows, cmds ) =
-                    List.unzip (List.map (updateAll) shows)
-            in
-                ( { model | list = updatedShows }, Cmd.batch cmds )
+                newShows =
+                    List.map (\show -> { showInit | show = show }) shows
 
-        LoadRev rev ->
-            let
-                ( newShows, cmds ) =
-                    List.unzip (List.map (updateHelp rev.id (SetRev rev.rev)) model.list)
+                cmds =
+                    List.map (\show -> Task.perform ShowError (UpdateEpisodes show.id) (fetchShow show.id)) shows
             in
                 ( { model | list = newShows }, Cmd.batch cmds )
+
+        ToggleShowUnwatchedOnly showUnwatched ->
+            ( { model | showOnlyShowsWithUnwatched = showUnwatched }, Cmd.none )
+
+        ToggleSeasons id isVisible ->
+            let
+                updater show =
+                    { show | seasonsListVisible = isVisible }
+
+                ( updatedList, cmd ) =
+                    updateShowInList model.list id updater (\_ -> Cmd.none)
+            in
+                ( { model | list = updatedList }, cmd )
+
+        ToggleSeason id number isVisible ->
+            let
+                updater show =
+                    let
+                        updatedVisible =
+                            Dict.insert number isVisible show.visibleSeasons
+                    in
+                        { show | visibleSeasons = updatedVisible }
+
+                ( updatedList, cmd ) =
+                    updateShowInList model.list id updater (\_ -> Cmd.none)
+            in
+                ( { model | list = updatedList }, cmd )
+
+        MarkEpisodeWatched id last ->
+            let
+                updater =
+                    updateShowData
+                        (\show -> { show | lastEpisodeWatched = last })
+
+                getPersistCmd updatedShow =
+                    persistShow updatedShow.show
+
+                ( updatedList, cmd ) =
+                    updateShowInList model.list id updater getPersistCmd
+            in
+                ( { model | list = updatedList }, cmd )
+
+        MarkSeasonWatched id number ->
+            let
+                updateShow show =
+                    let
+                        chosenSeason =
+                            List.Extra.find (\season -> season.number == number) show.seasons
+                    in
+                        case chosenSeason of
+                            Nothing ->
+                                show
+
+                            Just season ->
+                                case season.episodes of
+                                    [] ->
+                                        show
+
+                                    latest :: _ ->
+                                        { show | lastEpisodeWatched = ( number, latest.number ) }
+
+                getPersistCmd updatedShow =
+                    persistShow updatedShow.show
+
+                ( updatedList, cmd ) =
+                    updateShowInList model.list id (updateShowData updateShow) getPersistCmd
+            in
+                ( { model | list = updatedList }, cmd )
+
+        MarkAllEpisodesWatched id ->
+            let
+                updateShow show =
+                    let
+                        latestEpisode =
+                            case show.seasons of
+                                [] ->
+                                    ( 0, 0 )
+
+                                season :: _ ->
+                                    case season.episodes of
+                                        [] ->
+                                            ( 0, 0 )
+
+                                        episode :: _ ->
+                                            ( season.number, episode.number )
+
+                    in
+                        { show | lastEpisodeWatched = latestEpisode }
+
+                getPersistCmd updatedShow =
+                    Cmd.batch
+                        [ persistShow updatedShow.show
+                        , showNotification ("Caught up on " ++ updatedShow.show.name)
+                        ]
+
+                ( updatedList, cmd ) =
+                    updateShowInList model.list id (updateShowData updateShow) getPersistCmd
+            in
+                ( { model | list = updatedList }, cmd )
+
+        UpdateEpisodes id episodes ->
+            let
+                updateShow show =
+                    let
+                        seasons =
+                            List.reverse episodes
+                                |> List.map
+                                    (\episode ->
+                                        { id = episode.id
+                                        , name = episode.name
+                                        , summary = episode.summary
+                                        , season = episode.season
+                                        , number = episode.number
+                                        , airstamp = episode.airstamp
+                                        }
+                                    )
+                                |> groupWhile (\cur next -> cur.season == next.season)
+                                |> List.map
+                                    (\episodes ->
+                                        { episodes = episodes
+                                        , number = (getSeason episodes)
+                                        }
+                                    )
+
+                    in
+                        { show | seasons = seasons }
+
+                getPersistCmd updatedShow =
+                    persistShow updatedShow.show
+
+                ( updatedList, cmd ) =
+                    updateShowInList model.list id (updateShowData updateShow) getPersistCmd
+
+                _ = Debug.log "Episodes" updatedList
+            in
+                ( { model | list = updatedList }, cmd )
+
+
+        UpdateShow id ->
+            ( model, Task.perform ShowError (UpdateEpisodes id) (fetchShow id) )
+
+        SetRev showRev ->
+            let
+                updater show =
+                    { show | rev = showRev.rev }
+
+                ( updatedList, cmd ) =
+                    updateShowInList model.list showRev.id (updateShowData updater) (\_ -> Cmd.none)
+            in
+                ( { model | list = updatedList }, cmd )

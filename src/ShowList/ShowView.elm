@@ -1,4 +1,4 @@
-module Show.View exposing (view)
+module ShowList.ShowView exposing (view)
 
 import Html exposing (Html, button, div, text, img, a, hr, span)
 import Html.Attributes exposing (class, style, src, href, disabled)
@@ -7,12 +7,12 @@ import Dict
 import Markdown
 import Date exposing (Date)
 import Date.Extra.Compare as Compare exposing (is, Compare2(..))
-import Show.Types exposing (Msg(..), Model)
+import ShowList.Types exposing (Msg(..), ShowModel)
 import Regex exposing (regex)
 
 
-view : Model -> Html Msg
-view { today, show, visibleSeasons, seasonsListVisible } =
+view : Date -> ShowModel -> Html Msg
+view today { show, visibleSeasons, seasonsListVisible } =
     let
         seasons =
             airedSeasons today show.seasons
@@ -75,11 +75,11 @@ view { today, show, visibleSeasons, seasonsListVisible } =
                             )
                         ]
                     , button
-                        [ onClick (ToggleSeasons (not seasonsListVisible))
+                        [ onClick (ToggleSeasons show.id (not seasonsListVisible))
                         , class """
                             mdl-button
                             mdl-js-button
-                            mdl-button--raised
+                            mdl-button--flat
                             mdl-js-ripple-effect
                             mdl-button--colored
                             elmtv__button--spacing"""
@@ -93,11 +93,11 @@ view { today, show, visibleSeasons, seasonsListVisible } =
                         ]
                     , (if unwatchedEpisodes /= 0 then
                         button
-                            [ onClick MarkAllEpisodesWatched
+                            [ onClick (MarkAllEpisodesWatched show.id)
                             , class """
                                 mdl-button
                                 mdl-js-button
-                                mdl-button--raised
+                                mdl-button--flat
                                 mdl-js-ripple-effect
                                 mdl-button--accent
                                 elmtv__button--spacing"""
@@ -109,7 +109,7 @@ view { today, show, visibleSeasons, seasonsListVisible } =
                     ]
                 ]
             , (if seasonsListVisible == True then
-                viewSeasons show.lastEpisodeWatched seasons visibleSeasons
+                viewSeasons show.id show.lastEpisodeWatched seasons visibleSeasons
                else
                 div [] []
               )
@@ -143,7 +143,7 @@ hasSeasonBeenWatched lastWatchedEpisode season =
             episodeWatched lastWatchedEpisode latest
 
 
-viewEpisode lastEpisodeWatched episode =
+viewEpisode showId lastEpisodeWatched episode =
     div []
         [ div [ class "mdl-typography--title" ]
             [ text ("Episode " ++ (toString episode.number) ++ " - " ++ episode.name) ]
@@ -151,7 +151,7 @@ viewEpisode lastEpisodeWatched episode =
             [ (Markdown.toHtml [] episode.summary) ]
         , div [ class "elmtv__episode-watched" ]
             [ button
-                [ onClick (MarkEpisodeWatched ( episode.season, episode.number ))
+                [ onClick (MarkEpisodeWatched showId ( episode.season, episode.number ))
                 , disabled (episodeWatched lastEpisodeWatched episode)
                 , class """
                     mdl-button
@@ -166,17 +166,17 @@ viewEpisode lastEpisodeWatched episode =
         ]
 
 
-viewEpisodes lastEpisodeWatched isVisible season =
+viewEpisodes showId lastEpisodeWatched isVisible season =
     case isVisible of
         True ->
             div []
-                (List.map (viewEpisode lastEpisodeWatched) season.episodes)
+                (List.map (viewEpisode showId lastEpisodeWatched) season.episodes)
 
         False ->
             div [] []
 
 
-viewSeason lastEpisodeWatched visibleSeasons season =
+viewSeason showId lastEpisodeWatched visibleSeasons season =
     let
         isVisible =
             case Dict.get season.number visibleSeasons of
@@ -196,7 +196,7 @@ viewSeason lastEpisodeWatched visibleSeasons season =
                             div [] []
                            else
                             (button
-                                [ onClick (MarkSeasonWatched season.number)
+                                [ onClick (MarkSeasonWatched showId season.number)
                                 , class """
                                     mdl-button
                                     mdl-js-button
@@ -211,7 +211,7 @@ viewSeason lastEpisodeWatched visibleSeasons season =
                         ]
                     , div [ class "elmtv__episodes-toggle" ]
                         [ button
-                            [ onClick (ToggleSeason season.number (not isVisible))
+                            [ onClick (ToggleSeason showId season.number (not isVisible))
                             , class """
                                 mdl-button
                                 mdl-js-button
@@ -230,15 +230,15 @@ viewSeason lastEpisodeWatched visibleSeasons season =
                         ]
                     ]
                 ]
-            , viewEpisodes lastEpisodeWatched isVisible season
+            , viewEpisodes showId lastEpisodeWatched isVisible season
             , hr [] []
             ]
 
 
-viewSeasons lastEpisodeWatched seasons visibleSeasons =
+viewSeasons showId lastEpisodeWatched seasons visibleSeasons =
     div []
         ((hr [] [])
-            :: (List.map (viewSeason lastEpisodeWatched visibleSeasons) seasons)
+            :: (List.map (viewSeason showId lastEpisodeWatched visibleSeasons) seasons)
         )
 
 

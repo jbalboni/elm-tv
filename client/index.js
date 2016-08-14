@@ -110,8 +110,8 @@ setTimeout(function() {
     fetchAll();
 }, 0);
 
-if (process.env.NODE_ENV === 'production') {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js');
-    }
-}
+// if (process.env.NODE_ENV === 'production') {
+//     if ('serviceWorker' in navigator) {
+//         navigator.serviceWorker.register('service-worker.js');
+//     }
+// }

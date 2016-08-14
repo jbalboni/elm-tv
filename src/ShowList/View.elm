@@ -5,7 +5,7 @@ import Html.App as App
 import Html.Lazy exposing (lazy)
 import Html.Attributes exposing (style, class)
 import ShowList.Types exposing (Model, Msg(..))
-import Show.View as ShowView
+import ShowList.ShowView as ShowView
 
 
 view : Model -> Html Msg
@@ -15,7 +15,35 @@ view model =
             div [] []
 
         xs ->
-            div [ class "elmtv__panel" ]
-                ((List.map (\show -> App.map (ShowMsg show.show.id) (lazy ShowView.view show)) xs)
-                    |> (List.intersperse (hr [] []))
-                )
+            let
+                shows =
+                    case model.showOnlyShowsWithUnwatched of
+                        True ->
+                            List.filter (.show >> hasUnwatchedEpisode) xs
+
+                        False ->
+                            xs
+            in
+                div [ class "elmtv__panel" ]
+                    ((List.map (\show -> lazy (ShowView.view model.today) show) shows)
+                        |> (List.intersperse (hr [] []))
+                    )
+
+hasUnwatchedEpisode { lastEpisodeWatched, seasons } =
+    List.concat (List.map (\season -> season.episodes) seasons)
+    |> List.head
+    |> (episodeWatched lastEpisodeWatched)
+    |> not
+
+episodeWatched ( watchedSeason, watchedEpisode ) episode =
+    case episode of
+        Nothing ->
+            True
+
+        Just ep ->
+            if ep.season < watchedSeason then
+                True
+            else if (ep.season == watchedSeason) && (ep.number <= watchedEpisode) then
+                True
+            else
+                False
