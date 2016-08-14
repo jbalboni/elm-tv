@@ -131,6 +131,9 @@ body {
 
 .elmtv__show-image {
     height: 200px;
+    &--small {
+        height: 100px;
+    }
 }
 
 .c-show-Button {
@@ -140,6 +143,9 @@ body {
 @media screen and ( max-width: 405px ) {
     .elmtv__show-image {
         height: 50px;
+        &--small {
+            height: 25px;
+        }
     }
 }
 

@@ -119,7 +119,7 @@ update msg model =
 
 
 showDict shows =
-    List.foldr (\show showSet -> Set.insert show.show.id showSet) Set.empty shows.list
+    List.foldr (\show showSet -> Set.insert show.showData.id showSet) Set.empty shows.list
 
 
 view : Model -> Html Msg

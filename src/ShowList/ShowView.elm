@@ -1,4 +1,4 @@
-module ShowList.ShowView exposing (view)
+module ShowList.ShowView exposing (view, viewUnwatched)
 
 import Html exposing (Html, button, div, text, img, a, hr, span)
 import Html.Attributes exposing (class, style, src, href, disabled)
@@ -6,16 +6,58 @@ import Html.Events exposing (onClick)
 import Dict
 import Markdown
 import Date exposing (Date)
-import Date.Extra.Compare as Compare exposing (is, Compare2(..))
-import ShowList.Types exposing (Msg(..), ShowModel)
+import ShowList.Types exposing (Msg(..), Show)
 import Regex exposing (regex)
+import Utils.Show exposing (getAiredSeasons, hasSeasonBeenWatched, episodeWatched, getNextEpisode)
 
 
-view : Date -> ShowModel -> Html Msg
-view today { show, visibleSeasons, seasonsListVisible } =
+viewUnwatched : Date -> Show -> Html Msg
+viewUnwatched today { showData } =
+    let
+        nextEpisode =
+            getNextEpisode showData
+    in
+        div [ class "elmtv__show" ]
+            [ div [ class "elmtv__show-content" ]
+                [ img [ class "elmtv__show-image elmtv__show-image--small", src (getImage showData.image) ]
+                    []
+                , div [ class "elmtv__show-desc" ]
+                    [ div [ class "elmtv__show-headline" ]
+                        [ text showData.name ]
+                    , div []
+                        [ case nextEpisode of
+                            Nothing ->
+                                text "All caught up"
+
+                            Just episode ->
+                                div []
+                                    [ div [] [ text "Next episode: " ]
+                                    , text ("Season " ++ (toString episode.season) ++ ", episode " ++ (toString episode.number) ++ ": " ++ episode.name)
+                                    , div []
+                                        [ button
+                                            [ onClick (MarkEpisodeWatched showData.id ( episode.season, episode.number ))
+                                            , class """
+                                                mdl-button
+                                                mdl-js-button
+                                                mdl-button--raised
+                                                mdl-js-ripple-effect
+                                                mdl-button--colored
+                                                elmtv__button--spacing"""
+                                            ]
+                                            [ text "I watched this" ]
+                                        ]
+                                    ]
+                        ]
+                    ]
+                ]
+            ]
+
+
+view : Date -> Show -> Html Msg
+view today { showData, visibleSeasons, seasonsListVisible } =
     let
         seasons =
-            airedSeasons today show.seasons
+            getAiredSeasons today showData.seasons
 
         episodes =
             List.concat (List.map (\season -> season.episodes) seasons)
@@ -24,7 +66,7 @@ view today { show, visibleSeasons, seasonsListVisible } =
             List.length episodes
 
         unwatchedEpisodes =
-            case show.lastEpisodeWatched of
+            case showData.lastEpisodeWatched of
                 ( 0, 0 ) ->
                     numEpisodes
 
@@ -32,7 +74,7 @@ view today { show, visibleSeasons, seasonsListVisible } =
                     List.length
                         (List.filter
                             (\episode ->
-                                not (episodeWatched show.lastEpisodeWatched episode)
+                                not (episodeWatched showData.lastEpisodeWatched (Just episode))
                             )
                             episodes
                         )
@@ -51,7 +93,7 @@ view today { show, visibleSeasons, seasonsListVisible } =
         div [ class "elmtv__show" ]
             [ button
                 [ onClick
-                    (RemoveShow { id = show.id, rev = show.rev, name = show.name })
+                    (RemoveShow { id = showData.id, rev = showData.rev, name = showData.name })
                 , class """
                     mdl-button
                     mdl-js-button
@@ -63,11 +105,11 @@ view today { show, visibleSeasons, seasonsListVisible } =
                     [ text "delete" ]
                 ]
             , div [ class "elmtv__show-content" ]
-                [ img [ class "elmtv__show-image", src (getImage show.image) ]
+                [ img [ class "elmtv__show-image", src (getImage showData.image) ]
                     []
                 , div [ class "elmtv__show-desc" ]
                     [ div [ class "elmtv__show-headline" ]
-                        [ text show.name ]
+                        [ text showData.name ]
                     , div [ class "mdl-typography--title" ]
                         [ text
                             (if (numEpisodes > 0) then
@@ -77,7 +119,7 @@ view today { show, visibleSeasons, seasonsListVisible } =
                             )
                         ]
                     , button
-                        [ onClick (ToggleSeasons show.id (not seasonsListVisible))
+                        [ onClick (ToggleSeasons showData.id (not seasonsListVisible))
                         , class """
                             mdl-button
                             mdl-js-button
@@ -95,7 +137,7 @@ view today { show, visibleSeasons, seasonsListVisible } =
                         ]
                     , (if unwatchedEpisodes /= 0 then
                         button
-                            [ onClick (MarkAllEpisodesWatched show.id)
+                            [ onClick (MarkAllEpisodesWatched showData.id)
                             , class """
                                 mdl-button
                                 mdl-js-button
@@ -111,7 +153,7 @@ view today { show, visibleSeasons, seasonsListVisible } =
                     ]
                 ]
             , (if seasonsListVisible == True then
-                viewSeasons show.id show.lastEpisodeWatched seasons visibleSeasons
+                viewSeasons showData.id showData.lastEpisodeWatched seasons visibleSeasons
                else
                 div [] []
               )
@@ -127,24 +169,6 @@ getImage image =
             Regex.replace Regex.All (regex "http") (\_ -> "https") img
 
 
-episodeWatched ( watchedSeason, watchedEpisode ) episode =
-    if episode.season < watchedSeason then
-        True
-    else if (episode.season == watchedSeason) && (episode.number <= watchedEpisode) then
-        True
-    else
-        False
-
-
-hasSeasonBeenWatched lastWatchedEpisode season =
-    case season.episodes of
-        [] ->
-            False
-
-        latest :: _ ->
-            episodeWatched lastWatchedEpisode latest
-
-
 viewEpisode showId lastEpisodeWatched episode =
     div []
         [ div [ class "mdl-typography--title" ]
@@ -154,7 +178,7 @@ viewEpisode showId lastEpisodeWatched episode =
         , div [ class "elmtv__episode-watched" ]
             [ button
                 [ onClick (MarkEpisodeWatched showId ( episode.season, episode.number ))
-                , disabled (episodeWatched lastEpisodeWatched episode)
+                , disabled (episodeWatched lastEpisodeWatched (Just episode))
                 , class """
                     mdl-button
                     mdl-js-button
@@ -242,24 +266,3 @@ viewSeasons showId lastEpisodeWatched seasons visibleSeasons =
         ((hr [] [])
             :: (List.map (viewSeason showId lastEpisodeWatched visibleSeasons) seasons)
         )
-
-
-episodeAired today episode =
-    case Result.toMaybe (Date.fromString episode.airstamp) of
-        Nothing ->
-            True
-
-        Just date ->
-            is After today date
-
-
-airedSeasons today seasons =
-    seasons
-        |> List.map
-            (\season ->
-                { season
-                    | episodes =
-                        (List.filter (episodeAired today) season.episodes)
-                }
-            )
-        |> List.filter (\season -> season.episodes /= [])

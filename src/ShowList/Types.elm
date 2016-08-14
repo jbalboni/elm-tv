@@ -1,4 +1,4 @@
-module ShowList.Types exposing (Model, Msg(..), ShowRev, ShowRemoval, Show, ShowModel)
+module ShowList.Types exposing (Model, Msg(..), ShowRev, ShowRemoval, Show, ShowData, Episode)
 
 import Date exposing (Date)
 import Api.Types exposing (TVShowEpisode, TVShowResult)
@@ -7,7 +7,7 @@ import Http
 
 
 type alias Model =
-    { list : List ShowModel, error : Maybe String, showOnlyShowsWithUnwatched : Bool, today : Date }
+    { list : List Show, error : Maybe String, showOnlyShowsWithUnwatched : Bool, today : Date }
 
 
 type alias ShowAndEpisodes =
@@ -26,12 +26,12 @@ type alias Season =
     { number : Int, episodes : List Episode }
 
 
-type alias Show =
+type alias ShowData =
     { id : Int, lastEpisodeWatched : ( Int, Int ), name : String, image : Maybe String, seasons : List Season, rev : String, added : String }
 
 
-type alias ShowModel =
-    { show : Show, seasonsListVisible : Bool, visibleSeasons : Dict.Dict Int Bool }
+type alias Show =
+    { showData : ShowData, seasonsListVisible : Bool, visibleSeasons : Dict.Dict Int Bool }
 
 
 type alias ShowRemoval =
@@ -52,5 +52,5 @@ type Msg
     | SetRev ShowRev
     | RemoveShow ShowRemoval
     | AddToList ( Date, TVShowResult )
-    | LoadShows (List Show)
+    | LoadShows (List ShowData)
     | ToggleShowUnwatchedOnly Bool
