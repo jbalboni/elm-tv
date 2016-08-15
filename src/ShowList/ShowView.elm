@@ -23,7 +23,15 @@ viewUnwatched today { showData } =
                     []
                 , div [ class "elmtv__show-desc" ]
                     [ div [ class "elmtv__show-headline" ]
-                        [ text showData.name ]
+                        [ text
+                            (case nextEpisode of
+                                Nothing ->
+                                    ""
+
+                                Just episode ->
+                                    episode.name
+                            )
+                        ]
                     , div []
                         [ case nextEpisode of
                             Nothing ->
@@ -31,8 +39,8 @@ viewUnwatched today { showData } =
 
                             Just episode ->
                                 div []
-                                    [ div [] [ text "Next episode: " ]
-                                    , text ("Season " ++ (toString episode.season) ++ ", episode " ++ (toString episode.number) ++ ": " ++ episode.name)
+                                    [ div [] [ text showData.name ]
+                                    , text ("Season " ++ (toString episode.season) ++ ", episode " ++ (toString episode.number))
                                     , div []
                                         [ button
                                             [ onClick (MarkEpisodeWatched showData.id ( episode.season, episode.number ))
