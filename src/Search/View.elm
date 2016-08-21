@@ -6,6 +6,8 @@ import Html.Attributes exposing (type', class, placeholder, style, src, disabled
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Markdown
 import Search.Types exposing (Model, Msg(..))
+import Api.Types exposing (TVShowResult)
+import Maybe exposing (andThen)
 
 
 view : Model -> Set Int -> Html Msg
@@ -17,18 +19,12 @@ view model shows =
 
 
 getImage image =
-    let
-        placeholder =
-            { medium = "http://lorempixel.com/72/100/abstract" }
-    in
-        case image of
-            Nothing ->
-                placeholder.medium
-
-            Just img ->
-                img.medium
+    image
+        `andThen` (\img -> Just img.medium)
+        |> (Maybe.withDefault "http://lorempixel.com/72/100/abstract")
 
 
+viewTVShowResult : Set Int -> TVShowResult -> Html Msg
 viewTVShowResult shows result =
     div []
         [ div [ class "elmtv__search-result" ]

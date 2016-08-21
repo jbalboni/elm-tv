@@ -5,6 +5,7 @@ import Date.Extra.Compare as Compare exposing (is, Compare2(..))
 import Date exposing (Date)
 import ShowList.Types exposing (ShowData, Episode)
 import List.Extra exposing (takeWhile)
+import Maybe exposing (andThen)
 
 
 hasUnwatchedEpisode { lastEpisodeWatched, seasons } =
@@ -15,17 +16,17 @@ hasUnwatchedEpisode { lastEpisodeWatched, seasons } =
 
 
 episodeWatched ( watchedSeason, watchedEpisode ) episode =
-    case episode of
-        Nothing ->
-            True
-
-        Just ep ->
-            if ep.season < watchedSeason then
-                True
-            else if (ep.season == watchedSeason) && (ep.number <= watchedEpisode) then
-                True
-            else
-                False
+    episode
+        `andThen`
+            (\ep ->
+                if ep.season < watchedSeason then
+                    Just True
+                else if (ep.season == watchedSeason) && (ep.number <= watchedEpisode) then
+                    Just True
+                else
+                    Just False
+            )
+        |> Maybe.withDefault True
 
 
 getSeason episodes =
@@ -48,12 +49,9 @@ addEpisodesToShows shows episodesForShows =
 
 
 hasEpisodeAired today episode =
-    case Result.toMaybe (Date.fromString episode.airstamp) of
-        Nothing ->
-            True
-
-        Just date ->
-            is After today date
+    Result.toMaybe (Date.fromString episode.airstamp)
+        `andThen` (\date -> Just (is After today date))
+        |> Maybe.withDefault True
 
 
 getAiredSeasons today seasons =
@@ -79,11 +77,9 @@ hasSeasonBeenWatched lastWatchedEpisode season =
 
 getNextEpisode : ShowData -> Maybe Episode
 getNextEpisode { lastEpisodeWatched, seasons } =
-    let
-        episodes =
-            List.concat (List.map (\season -> season.episodes) seasons)
-
-        unwatchedEpisodes =
-            takeWhile (\episode -> not (episodeWatched lastEpisodeWatched (Just episode))) episodes
-    in
-        List.head (List.reverse unwatchedEpisodes)
+    seasons
+        |> List.map (\season -> season.episodes)
+        |> List.concat
+        |> takeWhile (\episode -> not (episodeWatched lastEpisodeWatched (Just episode)))
+        |> List.reverse
+        |> List.head

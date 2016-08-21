@@ -169,12 +169,8 @@ view today { showData, visibleSeasons, seasonsListVisible } =
 
 
 getImage image =
-    case image of
-        Nothing ->
-            "http://lorempixel.com/72/100/abstract"
-
-        Just img ->
-            Regex.replace Regex.All (regex "http") (\_ -> "https") img
+    Maybe.withDefault "http://lorempixel.com/72/100/abstract" image
+        |> Regex.replace Regex.All (regex "http") (\_ -> "https")
 
 
 viewEpisode showId lastEpisodeWatched episode =
@@ -201,24 +197,17 @@ viewEpisode showId lastEpisodeWatched episode =
 
 
 viewEpisodes showId lastEpisodeWatched isVisible season =
-    case isVisible of
-        True ->
-            div []
-                (List.map (viewEpisode showId lastEpisodeWatched) season.episodes)
-
-        False ->
-            div [] []
+    if isVisible then
+        div []
+            (List.map (viewEpisode showId lastEpisodeWatched) season.episodes)
+    else
+        div [] []
 
 
 viewSeason showId lastEpisodeWatched visibleSeasons season =
     let
         isVisible =
-            case Dict.get season.number visibleSeasons of
-                Nothing ->
-                    False
-
-                Just visible ->
-                    visible
+            Maybe.withDefault False (Dict.get season.number visibleSeasons)
     in
         div []
             [ div [ class "elmtv__season-content" ]

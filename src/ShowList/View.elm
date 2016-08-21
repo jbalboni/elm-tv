@@ -17,14 +17,15 @@ view model =
                 lazy (ShowView.viewUnwatched model.today)
             else
                 lazy (ShowView.view model.today)
-
-        showList =
-            if model.showOnlyShowsWithUnwatched then
-                List.filter (.showData >> hasUnwatchedEpisode) model.list
-            else
-                model.list
     in
-        div [ class "elmtv__panel" ]
-            ((List.map showView showList)
-                |> (List.intersperse (hr [] []))
-            )
+        model.list
+            |> (\showList ->
+                    if model.showOnlyShowsWithUnwatched then
+                        showList
+                            |> List.filter (.showData >> hasUnwatchedEpisode)
+                    else
+                        showList
+               )
+            |> List.map showView
+            |> List.intersperse (hr [] [])
+            |> div [ class "elmtv__panel" ]

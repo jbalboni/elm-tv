@@ -12,10 +12,17 @@ import List.Extra exposing (groupWhile)
 import Api.Types exposing (TVShowEpisode)
 import GlobalPorts exposing (showNotification)
 import Utils.Show exposing (getSeason)
+import Maybe exposing (andThen)
 
 
 init showOnlyShowsWithUnwatched =
-    ( { list = [], error = Nothing, showOnlyShowsWithUnwatched = showOnlyShowsWithUnwatched, today = Date.fromTime 0 }, Task.perform ShowTimeError SetTodaysDate Date.now )
+    ( { list = []
+      , error = Nothing
+      , showOnlyShowsWithUnwatched = showOnlyShowsWithUnwatched
+      , today = Date.fromTime 0
+      }
+    , Task.perform ShowTimeError SetTodaysDate Date.now
+    )
 
 
 showInit =
@@ -73,12 +80,9 @@ updateShowInList shows id updateShow getCmd =
             List.Extra.find (\show -> show.showData.id == id) updatedList
 
         cmd =
-            case updatedShow of
-                Nothing ->
-                    Cmd.none
-
-                Just show ->
-                    getCmd show
+            updatedShow
+                `andThen` (\show -> Just (getCmd show))
+                |> Maybe.withDefault Cmd.none
     in
         ( updatedList, cmd )
 
